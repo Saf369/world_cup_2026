@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 const NAV_LINKS = [
   { id: "hero",      label: "Home" },
@@ -109,9 +110,35 @@ export default function Nav() {
         </div>
 
         {/* CTA */}
-        <button className="btn-gold" style={{ fontSize: 9, padding: "10px 20px" }}>
-          Sign In
-        </button>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Link
+            href="/bracket"
+            id="nav-my-bracket"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontFamily: "var(--font-ui)",
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              color: "#C9A84C",
+              textDecoration: "none",
+              border: "1px solid rgba(201,168,76,0.4)",
+              borderRadius: 2,
+              padding: "8px 16px",
+              transition: "all 0.22s ease",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor="#C9A84C"; (e.currentTarget as HTMLElement).style.background="rgba(201,168,76,0.06)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor="rgba(201,168,76,0.4)"; (e.currentTarget as HTMLElement).style.background="transparent"; }}
+          >
+            ✦ MY BRACKET
+          </Link>
+          <button className="btn-gold" style={{ fontSize: 9, padding: "10px 20px" }}>
+            Sign In
+          </button>
+        </div>
       </div>
     </nav>
   );
