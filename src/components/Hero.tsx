@@ -121,7 +121,7 @@ export default function Hero() {
       >
         {/* Eyebrow */}
         <div className="eyebrow" style={{ marginBottom: 24 }}>
-          FIFA World Cup 2026 · USA · Canada · Mexico
+          FIFA World Cup 2026 · Jun 11 – Jul 19 · USA · Canada · Mexico
         </div>
 
         {/* Main headline */}
@@ -153,7 +153,7 @@ export default function Hero() {
             transform: loaded ? "translateY(0)" : "translateY(20px)",
           }}
         >
-          Every Match. Every Goal. Every Legend.
+          48 Nations. 104 Matches. One Champion.
         </p>
 
         <p
@@ -168,9 +168,9 @@ export default function Hero() {
             transition: "opacity 0.8s ease 0.35s",
           }}
         >
-          Harness AI-driven analytics to predict match outcomes, track live
-          brackets, and compete against the world's elite forecasters. The
-          most sophisticated prediction platform ever built for the beautiful game.
+          The most sophisticated prediction platform ever built for the beautiful game.
+          Harness AI-driven analytics for all 104 matches — from Mexico vs South Africa
+          at Estadio Azteca on June 11 to the Grand Final at MetLife Stadium on July 19.
         </p>
 
         {/* CTAs */}

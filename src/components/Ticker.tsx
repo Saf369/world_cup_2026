@@ -1,14 +1,18 @@
 "use client";
 
 const TICKER_ITEMS = [
-  { label: "ARGENTINA", score: "3 — 1", vs: "FRANCE",   status: "FT",  live: false },
-  { label: "SPAIN",     score: "2 — 0", vs: "GERMANY",  status: "FT",  live: false },
-  { label: "BRAZIL",    score: "1 — ",  vs: "PORTUGAL", status: "67′", live: true  },
-  { label: "ENGLAND",   score: "0 — 0", vs: "NETHERLANDS", status: "45′", live: true },
-  { label: "MOROCCO",   score: "2 — 1", vs: "SENEGAL",  status: "FT",  live: false },
-  { label: "USA",       score: "1 — 2", vs: "MEXICO",   status: "FT",  live: false },
-  { label: "JAPAN",     score: "3 — 0", vs: "CROATIA",  status: "FT",  live: false },
-  { label: "COLOMBIA",  score: "0 — ",  vs: "ECUADOR",  status: "12′", live: true  },
+  { label: "MEXICO",    score: "— vs —", vs: "SOUTH AFRICA", status: "Jun 11", live: false, upcoming: true },
+  { label: "USA",       score: "— vs —", vs: "PARAGUAY",     status: "Jun 12", live: false, upcoming: true },
+  { label: "CANADA",   score: "— vs —", vs: "BOSNIA-HERZ.",  status: "Jun 12", live: false, upcoming: true },
+  { label: "GERMANY",  score: "— vs —", vs: "CURAÇAO",       status: "Jun 13", live: false, upcoming: true },
+  { label: "BRAZIL",   score: "— vs —", vs: "MOROCCO",       status: "Jun 13", live: false, upcoming: true },
+  { label: "FRANCE",   score: "— vs —", vs: "SENEGAL",       status: "Jun 14", live: false, upcoming: true },
+  { label: "SPAIN",    score: "— vs —", vs: "CAPE VERDE",    status: "Jun 14", live: false, upcoming: true },
+  { label: "ARGENTINA",score: "— vs —", vs: "ALGERIA",       status: "Jun 15", live: false, upcoming: true },
+  { label: "ENGLAND",  score: "— vs —", vs: "CROATIA",       status: "Jun 15", live: false, upcoming: true },
+  { label: "PORTUGAL", score: "— vs —", vs: "DR CONGO",      status: "Jun 16", live: false, upcoming: true },
+  { label: "NETHERLANDS", score: "— vs —", vs: "JAPAN",      status: "Jun 16", live: false, upcoming: true },
+  { label: "FINAL",    score: "MetLife Stadium", vs: "NJ",   status: "Jul 19", live: false, upcoming: true },
 ];
 
 // Duplicate for seamless loop
@@ -45,7 +49,7 @@ export default function Ticker() {
           className="font-display"
           style={{ fontSize: 12, color: "#050505", letterSpacing: "0.15em" }}
         >
-          LIVE
+          WC 2026
         </span>
       </div>
 
@@ -78,6 +82,18 @@ export default function Ticker() {
                   }}
                 />
               )}
+              {item.upcoming && !item.live && (
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: "#252525",
+                    border: "1px solid #5A5248",
+                    flexShrink: 0,
+                  }}
+                />
+              )}
               <span
                 className="label-xs"
                 style={{ color: "#E8E0D0", letterSpacing: "1.5px", fontSize: 10 }}
@@ -86,7 +102,7 @@ export default function Ticker() {
               </span>
               <span
                 className="font-display"
-                style={{ fontSize: 14, color: "#C9A84C", letterSpacing: "0.1em" }}
+                style={{ fontSize: 13, color: "#C9A84C", letterSpacing: "0.08em" }}
               >
                 {item.score}
               </span>

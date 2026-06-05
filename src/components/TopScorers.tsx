@@ -8,20 +8,22 @@ interface Scorer {
   goals: number;
   assists: number;
   mins: number;
-  ratio: number; // goals per 90
+  ratio: number; // goals per 90 — projected
+  odds: string;  // top scorer odds
 }
 
+// Pre-tournament top scorer predictions based on form, squad role & odds
 const SCORERS: Scorer[] = [
-  { rank: 1,  name: "Kylian Mbappé",     country: "France",    flag: "🇫🇷", goals: 8, assists: 3, mins: 630, ratio: 1.14 },
-  { rank: 2,  name: "Lionel Messi",      country: "Argentina", flag: "🇦🇷", goals: 7, assists: 6, mins: 658, ratio: 0.96 },
-  { rank: 3,  name: "Vinícius Jr.",      country: "Brazil",    flag: "🇧🇷", goals: 6, assists: 4, mins: 612, ratio: 0.88 },
-  { rank: 4,  name: "Lamine Yamal",      country: "Spain",     flag: "🇪🇸", goals: 5, assists: 5, mins: 579, ratio: 0.78 },
-  { rank: 5,  name: "Erling Haaland",    country: "Norway",    flag: "🇳🇴", goals: 5, assists: 1, mins: 540, ratio: 0.83 },
-  { rank: 6,  name: "Pedri",             country: "Spain",     flag: "🇪🇸", goals: 4, assists: 6, mins: 602, ratio: 0.60 },
-  { rank: 7,  name: "Jude Bellingham",   country: "England",   flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", goals: 4, assists: 3, mins: 618, ratio: 0.58 },
-  { rank: 8,  name: "Julián Álvarez",    country: "Argentina", flag: "🇦🇷", goals: 4, assists: 2, mins: 550, ratio: 0.65 },
-  { rank: 9,  name: "Rafael Leão",       country: "Portugal",  flag: "🇵🇹", goals: 3, assists: 4, mins: 520, ratio: 0.52 },
-  { rank: 10, name: "Rodri",             country: "Spain",     flag: "🇪🇸", goals: 3, assists: 2, mins: 598, ratio: 0.45 },
+  { rank: 1,  name: "Kylian Mbappé",     country: "France",    flag: "🇫🇷", goals: 0, assists: 0, mins: 0, ratio: 1.12, odds: "4.50" },
+  { rank: 2,  name: "Erling Haaland",    country: "Norway",    flag: "🇳🇴", goals: 0, assists: 0, mins: 0, ratio: 1.08, odds: "5.00" },
+  { rank: 3,  name: "Vinícius Jr.",      country: "Brazil",    flag: "🇧🇷", goals: 0, assists: 0, mins: 0, ratio: 0.96, odds: "6.00" },
+  { rank: 4,  name: "Harry Kane",        country: "England",   flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", goals: 0, assists: 0, mins: 0, ratio: 0.92, odds: "7.00" },
+  { rank: 5,  name: "Julián Álvarez",    country: "Argentina", flag: "🇦🇷", goals: 0, assists: 0, mins: 0, ratio: 0.88, odds: "8.00" },
+  { rank: 6,  name: "Lamine Yamal",      country: "Spain",     flag: "🇪🇸", goals: 0, assists: 0, mins: 0, ratio: 0.82, odds: "9.00" },
+  { rank: 7,  name: "Jude Bellingham",   country: "England",   flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", goals: 0, assists: 0, mins: 0, ratio: 0.78, odds: "10.00" },
+  { rank: 8,  name: "Raphinha",          country: "Brazil",    flag: "🇧🇷", goals: 0, assists: 0, mins: 0, ratio: 0.74, odds: "12.00" },
+  { rank: 9,  name: "Bukayo Saka",       country: "England",   flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", goals: 0, assists: 0, mins: 0, ratio: 0.70, odds: "14.00" },
+  { rank: 10, name: "Rodrygo",           country: "Brazil",    flag: "🇧🇷", goals: 0, assists: 0, mins: 0, ratio: 0.68, odds: "16.00" },
 ];
 
 function ScorerRow({ scorer }: { scorer: Scorer }) {
@@ -30,44 +32,39 @@ function ScorerRow({ scorer }: { scorer: Scorer }) {
       className="scorer-row"
       style={{
         display: "grid",
-        gridTemplateColumns: "32px 1fr 64px 64px 64px 64px",
+        gridTemplateColumns: "32px 1fr 72px 72px 72px 72px",
         alignItems: "center",
         gap: 16,
         padding: "16px 20px 16px 24px",
         cursor: "default",
       }}
     >
-      {/* Rank */}
       <span
         className="font-display"
-        style={{
-          fontSize: 18,
-          color: scorer.rank <= 3 ? "#C9A84C" : "#5A5248",
-          letterSpacing: "0.05em",
-        }}
+        style={{ fontSize: 18, color: scorer.rank <= 3 ? "#C9A84C" : "#5A5248", letterSpacing: "0.05em" }}
       >
         {String(scorer.rank).padStart(2, "0")}
       </span>
 
-      {/* Player */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ fontSize: 20 }}>{scorer.flag}</span>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 500, color: "#E8E0D0", letterSpacing: "0.5px" }}>
-            {scorer.name}
-          </div>
-          <div className="label-xs" style={{ color: "#5A5248", marginTop: 2 }}>
-            {scorer.country}
-          </div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: "#E8E0D0", letterSpacing: "0.5px" }}>{scorer.name}</div>
+          <div className="label-xs" style={{ color: "#5A5248", marginTop: 2 }}>{scorer.country}</div>
         </div>
       </div>
 
-      {/* Goals */}
+      {/* Projected P90 */}
       <div style={{ textAlign: "center" }}>
-        <div
-          className="font-display"
-          style={{ fontSize: 22, color: "#C9A84C", letterSpacing: "0.05em" }}
-        >
+        <div className="font-display" style={{ fontSize: 22, color: "#C9A84C", letterSpacing: "0.05em" }}>
+          {scorer.ratio.toFixed(2)}
+        </div>
+        <div className="label-xs" style={{ color: "#5A5248" }}>Proj. P90</div>
+      </div>
+
+      {/* Goals (live) */}
+      <div style={{ textAlign: "center" }}>
+        <div className="font-display" style={{ fontSize: 22, color: "#9A9080", letterSpacing: "0.05em" }}>
           {scorer.goals}
         </div>
         <div className="label-xs" style={{ color: "#5A5248" }}>Goals</div>
@@ -75,29 +72,16 @@ function ScorerRow({ scorer }: { scorer: Scorer }) {
 
       {/* Assists */}
       <div style={{ textAlign: "center" }}>
-        <div
-          className="font-display"
-          style={{ fontSize: 22, color: "#9A9080", letterSpacing: "0.05em" }}
-        >
+        <div className="font-display" style={{ fontSize: 22, color: "#9A9080", letterSpacing: "0.05em" }}>
           {scorer.assists}
         </div>
         <div className="label-xs" style={{ color: "#5A5248" }}>Assists</div>
       </div>
 
-      {/* Mins */}
+      {/* Top scorer odds */}
       <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: 13, color: "#9A9080", fontWeight: 500 }}>
-          {scorer.mins}′
-        </div>
-        <div className="label-xs" style={{ color: "#5A5248" }}>Mins</div>
-      </div>
-
-      {/* Per 90 */}
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: 13, color: "#9A9080", fontWeight: 500 }}>
-          {scorer.ratio.toFixed(2)}
-        </div>
-        <div className="label-xs" style={{ color: "#5A5248" }}>P90</div>
+        <div style={{ fontSize: 13, color: "#9A9080", fontWeight: 500 }}>{scorer.odds}</div>
+        <div className="label-xs" style={{ color: "#5A5248" }}>Top Scorer</div>
       </div>
     </div>
   );
@@ -110,15 +94,19 @@ export default function TopScorers() {
       style={{ background: "#0D0D0D", padding: "100px 0", borderTop: "1px solid #252525" }}
     >
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 40px" }}>
-        <div style={{ marginBottom: 48 }}>
-          <div className="eyebrow" style={{ marginBottom: 16 }}>Player Rankings</div>
+        <div style={{ marginBottom: 16 }}>
+          <div className="eyebrow" style={{ marginBottom: 16 }}>Player Rankings · Pre-Tournament Projections</div>
           <h2 className="section-title">Top <em>Scorers</em></h2>
         </div>
 
-        <div
-          className="panel"
-          style={{ overflow: "hidden", position: "relative" }}
-        >
+        {/* Note */}
+        <div style={{ marginBottom: 32, padding: "12px 20px", background: "rgba(201,168,76,0.04)", border: "1px solid rgba(201,168,76,0.12)", borderRadius: 2 }}>
+          <span className="label-xs" style={{ color: "#5A5248" }}>
+            Tournament begins Jun 11, 2026 · Squads confirmed Jun 2, 2026 · 26 players per nation · Statistics update live
+          </span>
+        </div>
+
+        <div className="panel" style={{ overflow: "hidden", position: "relative" }}>
           <div className="corner-ornament top-left" />
           <div className="corner-ornament top-right" />
 
@@ -126,7 +114,7 @@ export default function TopScorers() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "32px 1fr 64px 64px 64px 64px",
+              gridTemplateColumns: "32px 1fr 72px 72px 72px 72px",
               alignItems: "center",
               gap: 16,
               padding: "12px 20px 12px 24px",
@@ -136,15 +124,40 @@ export default function TopScorers() {
           >
             <span className="label-xs">#</span>
             <span className="label-xs">Player</span>
+            <span className="label-xs" style={{ textAlign: "center" }}>Proj. P90</span>
             <span className="label-xs" style={{ textAlign: "center" }}>Goals</span>
             <span className="label-xs" style={{ textAlign: "center" }}>Assists</span>
-            <span className="label-xs" style={{ textAlign: "center" }}>Mins</span>
-            <span className="label-xs" style={{ textAlign: "center" }}>P90</span>
+            <span className="label-xs" style={{ textAlign: "center" }}>Odds</span>
           </div>
 
           {SCORERS.map((scorer) => (
             <ScorerRow key={scorer.rank} scorer={scorer} />
           ))}
+        </div>
+
+        {/* Championship odds reference */}
+        <div style={{ marginTop: 48 }}>
+          <div className="eyebrow" style={{ marginBottom: 24 }}>Championship Odds Reference</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 12 }}>
+            {[
+              { team: "France 🇫🇷",      odds: "3.50", prob: "28.6%", rank: "#1" },
+              { team: "Brazil 🇧🇷",       odds: "4.20", prob: "23.8%", rank: "#6" },
+              { team: "Argentina 🇦🇷",    odds: "4.80", prob: "20.8%", rank: "#3" },
+              { team: "Spain 🇪🇸",        odds: "5.50", prob: "18.2%", rank: "#2" },
+              { team: "England 🏴󠁧󠁢󠁥󠁮󠁧󠁿",     odds: "6.00", prob: "16.7%", rank: "#4" },
+              { team: "Germany 🇩🇪",      odds: "7.00", prob: "14.3%", rank: "#9" },
+            ].map((c) => (
+              <div key={c.team} style={{ background: "#111111", border: "1px solid #252525", borderRadius: 2, padding: "16px", textAlign: "center" }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(201,168,76,0.4)")}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#252525")}
+              >
+                <div className="label-xs" style={{ color: "#5A5248", marginBottom: 4 }}>{c.rank}</div>
+                <div style={{ fontSize: 12, color: "#E8E0D0", fontWeight: 500, marginBottom: 4 }}>{c.team}</div>
+                <div className="font-display" style={{ fontSize: 20, color: "#C9A84C" }}>{c.odds}</div>
+                <div className="label-xs" style={{ color: "#5A5248", marginTop: 4 }}>{c.prob} implied</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

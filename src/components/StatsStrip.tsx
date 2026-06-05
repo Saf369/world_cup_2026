@@ -1,12 +1,12 @@
 "use client";
 
 const STATS = [
-  { value: "48",   label: "Matches", suffix: "" },
-  { value: "32",   label: "Nations", suffix: "" },
-  { value: "16",   label: "Venues",  suffix: "" },
-  { value: "5.2M", label: "Fans",    suffix: "+" },
-  { value: "94",   label: "Goals",   suffix: "" },
-  { value: "2.4",  label: "Avg Goals", suffix: "" },
+  { value: "104",   label: "Total Matches",  suffix: "" },
+  { value: "48",    label: "Nations",        suffix: "" },
+  { value: "16",    label: "Venues",         suffix: "" },
+  { value: "12",    label: "Groups",         suffix: "" },
+  { value: "39",    label: "Days",           suffix: "" },
+  { value: "3",     label: "Host Nations",   suffix: "" },
 ];
 
 export default function StatsStrip() {

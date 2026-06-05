@@ -4,35 +4,39 @@ interface TeamRow {
   name: string;
   flag: string;
   isWinner?: boolean;
-  isMuted?: boolean;
 }
 
 interface Round {
   label: string;
+  date: string;
   matches: [TeamRow, TeamRow][];
 }
 
+// Predicted AI bracket based on FIFA rankings & championship odds
 const ROUNDS: Round[] = [
   {
     label: "Quarter Finals",
+    date: "Jul 4–7, 2026",
     matches: [
-      [{ name: "ARGENTINA", flag: "🇦🇷", isWinner: true }, { name: "NETHERLANDS", flag: "🇳🇱" }],
-      [{ name: "FRANCE",    flag: "🇫🇷", isWinner: true }, { name: "ENGLAND",     flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" }],
-      [{ name: "BRAZIL",    flag: "🇧🇷", isWinner: true }, { name: "GERMANY",     flag: "🇩🇪" }],
-      [{ name: "SPAIN",     flag: "🇪🇸", isWinner: true }, { name: "PORTUGAL",    flag: "🇵🇹" }],
+      [{ name: "FRANCE",    flag: "🇫🇷", isWinner: true }, { name: "PORTUGAL",    flag: "🇵🇹" }],
+      [{ name: "ARGENTINA", flag: "🇦🇷", isWinner: true }, { name: "GERMANY",     flag: "🇩🇪" }],
+      [{ name: "SPAIN",     flag: "🇪🇸", isWinner: true }, { name: "NETHERLANDS", flag: "🇳🇱" }],
+      [{ name: "BRAZIL",    flag: "🇧🇷", isWinner: true }, { name: "ENGLAND",     flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" }],
     ],
   },
   {
     label: "Semi Finals",
+    date: "Jul 11–12, 2026",
     matches: [
-      [{ name: "ARGENTINA", flag: "🇦🇷", isWinner: true }, { name: "FRANCE",  flag: "🇫🇷" }],
-      [{ name: "SPAIN",     flag: "🇪🇸", isWinner: true }, { name: "BRAZIL",  flag: "🇧🇷" }],
+      [{ name: "FRANCE",    flag: "🇫🇷", isWinner: true }, { name: "ARGENTINA", flag: "🇦🇷" }],
+      [{ name: "BRAZIL",    flag: "🇧🇷", isWinner: true }, { name: "SPAIN",     flag: "🇪🇸" }],
     ],
   },
   {
     label: "Final",
+    date: "Jul 19, 2026 · MetLife",
     matches: [
-      [{ name: "ARGENTINA", flag: "🇦🇷", isWinner: true }, { name: "SPAIN", flag: "🇪🇸" }],
+      [{ name: "FRANCE", flag: "🇫🇷", isWinner: true }, { name: "BRAZIL", flag: "🇧🇷" }],
     ],
   },
 ];
@@ -46,7 +50,6 @@ function BracketRow({ team }: { team: TeamRow }) {
         alignItems: "center",
         gap: 10,
         padding: "10px 16px",
-        opacity: team.isMuted ? 0.4 : 1,
       }}
     >
       <span style={{ fontSize: 18 }}>{team.flag}</span>
@@ -105,9 +108,32 @@ export default function Bracket() {
       style={{ background: "#0D0D0D", padding: "100px 0", borderTop: "1px solid #252525" }}
     >
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 40px" }}>
-        <div style={{ marginBottom: 48 }}>
+        <div style={{ marginBottom: 12 }}>
           <div className="eyebrow" style={{ marginBottom: 16 }}>Tournament Structure</div>
           <h2 className="section-title">Knockout <em>Bracket</em></h2>
+        </div>
+
+        {/* Format note */}
+        <div style={{
+          marginBottom: 40,
+          padding: "14px 20px",
+          background: "rgba(201,168,76,0.04)",
+          border: "1px solid rgba(201,168,76,0.15)",
+          borderRadius: 2,
+          display: "flex",
+          gap: 32,
+          flexWrap: "wrap",
+        }}>
+          {[
+            { label: "Format", val: "Round of 32 → R16 → QF → SF → Final" },
+            { label: "Qualifiers", val: "Top 2 per group + Best 8 third-place (32 total)" },
+            { label: "If Tied", val: "30 min Extra Time → Penalty Shootout" },
+          ].map((item) => (
+            <div key={item.label}>
+              <span className="label-xs" style={{ color: "#5A5248" }}>{item.label}: </span>
+              <span className="label-xs" style={{ color: "#9A9080" }}>{item.val}</span>
+            </div>
+          ))}
         </div>
 
         <div style={{ overflowX: "auto", paddingBottom: 24 }}>
@@ -126,23 +152,26 @@ export default function Bracket() {
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "center",
-                    gap: 10,
+                    flexDirection: "column",
+                    gap: 4,
                     marginBottom: 24,
                     paddingBottom: 12,
                     borderBottom: "1px solid #252525",
                   }}
                 >
-                  <div style={{ width: 1, height: 16, background: "#C9A84C", opacity: 0.6 }} />
-                  <span
-                    className="font-display"
-                    style={{ fontSize: 16, color: "#C9A84C", letterSpacing: "0.1em" }}
-                  >
-                    {round.label}
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 1, height: 16, background: "#C9A84C", opacity: 0.6 }} />
+                    <span
+                      className="font-display"
+                      style={{ fontSize: 16, color: "#C9A84C", letterSpacing: "0.1em" }}
+                    >
+                      {round.label}
+                    </span>
+                  </div>
+                  <span className="label-xs" style={{ color: "#5A5248", paddingLeft: 11 }}>{round.date}</span>
                 </div>
 
-                {/* Matches — vertically centred in column */}
+                {/* Matches */}
                 <div
                   style={{
                     display: "flex",
@@ -184,27 +213,34 @@ export default function Bracket() {
           />
           <div className="corner-ornament top-left" />
           <div className="corner-ornament top-right" />
-          <div style={{ fontSize: 48, position: "relative" }}>🇦🇷</div>
+          <div style={{ fontSize: 48, position: "relative" }}>🇫🇷</div>
           <div style={{ position: "relative" }}>
             <div className="label-xs" style={{ color: "#C9A84C", marginBottom: 4 }}>
-              AI Predicted Champion · 2026
+              AI Predicted Champion · 2026 · FIFA Rank #1
             </div>
             <div
               className="font-display"
               style={{ fontSize: 36, color: "#E8E0D0", letterSpacing: "0.1em" }}
             >
-              ARGENTINA
+              FRANCE
             </div>
             <div className="label-xs" style={{ color: "#5A5248", marginTop: 4 }}>
-              62% Championship Probability
+              28.6% Championship Probability · Odds 3.50 · Winners 1998, 2018
             </div>
           </div>
           <div style={{ marginLeft: "auto", textAlign: "right", position: "relative" }}>
-            <div
-              className="font-serif"
-              style={{ fontSize: "1.2rem", fontStyle: "italic", color: "#C9A84C", opacity: 0.7 }}
-            >
-              &ldquo;The Beautiful Game&rdquo;
+            <div style={{ display: "flex", gap: 24 }}>
+              {[
+                { team: "Brazil 🇧🇷",    pct: "23.8%", rank: "#6" },
+                { team: "Argentina 🇦🇷", pct: "20.8%", rank: "#3" },
+                { team: "Spain 🇪🇸",     pct: "18.2%", rank: "#2" },
+              ].map((c) => (
+                <div key={c.team} style={{ textAlign: "center" }}>
+                  <div className="font-display" style={{ fontSize: 16, color: "#9A9080" }}>{c.pct}</div>
+                  <div className="label-xs" style={{ color: "#5A5248", marginTop: 2 }}>{c.team}</div>
+                  <div className="label-xs" style={{ color: "#5A5248" }}>{c.rank}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
