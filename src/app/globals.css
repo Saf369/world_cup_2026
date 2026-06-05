@@ -1,0 +1,380 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════
+   MUNDIAL — DESIGN TOKENS
+═══════════════════════════════════════ */
+:root {
+  --black-deep:   #050505;
+  --black-surface:#0D0D0D;
+  --black-panel:  #111111;
+  --black-card:   #141414;
+  --border:       #252525;
+  --border-mid:   #1E1E1E;
+  --gold:         #C9A84C;
+  --gold-dim:     rgba(201, 168, 76, 0.4);
+  --gold-glow:    rgba(201, 168, 76, 0.06);
+  --gold-glow-md: rgba(201, 168, 76, 0.10);
+  --text-primary: #E8E0D0;
+  --text-secondary:#9A9080;
+  --text-muted:   #5A5248;
+
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-serif:   'Cormorant Garamond', serif;
+  --font-ui:      'Montserrat', sans-serif;
+
+  --radius-sm: 2px;
+  --radius:    4px;
+  --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) var(--black-surface);
+}
+
+body {
+  background-color: var(--black-deep);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--black-surface); }
+::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+/* ═══════════════════════════════════════
+   TYPOGRAPHY
+═══════════════════════════════════════ */
+.font-display  { font-family: var(--font-display); letter-spacing: 0.06em; }
+.font-serif    { font-family: var(--font-serif); }
+.font-ui       { font-family: var(--font-ui); }
+
+.text-gold     { color: var(--gold); }
+.text-primary  { color: var(--text-primary); }
+.text-secondary{ color: var(--text-secondary); }
+.text-muted    { color: var(--text-muted); }
+
+/* ═══════════════════════════════════════
+   SECTION EYEBROW — 24px gold rule prefix
+═══════════════════════════════════════ */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.eyebrow::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--gold);
+  flex-shrink: 0;
+}
+
+/* Section title — Cormorant italic gold word */
+.section-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.2rem, 4vw, 3.5rem);
+  font-weight: 300;
+  line-height: 1.1;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.section-title em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+/* Display headline */
+.display-xl {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 10vw, 9rem);
+  line-height: 0.9;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════
+   PANEL / CARD STYLES
+═══════════════════════════════════════ */
+.panel {
+  background: var(--black-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, var(--gold-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════
+   CORNER ORNAMENTS — 32px L-brackets at 40% opacity
+═══════════════════════════════════════ */
+.corner-ornament {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 2;
+}
+.corner-ornament::before,
+.corner-ornament::after {
+  content: '';
+  position: absolute;
+  background: var(--gold);
+}
+.corner-ornament::before { width: 100%; height: 1px; top: 0; left: 0; }
+.corner-ornament::after  { width: 1px; height: 100%; top: 0; left: 0; }
+
+.corner-ornament.top-left    { top: 12px; left: 12px; }
+.corner-ornament.top-right   { top: 12px; right: 12px; transform: scaleX(-1); }
+.corner-ornament.bottom-left { bottom: 12px; left: 12px; transform: scaleY(-1); }
+.corner-ornament.bottom-right{ bottom: 12px; right: 12px; transform: scale(-1); }
+
+/* ═══════════════════════════════════════
+   GOLD BUTTON
+═══════════════════════════════════════ */
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--black-deep);
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+}
+.btn-gold:hover {
+  background: transparent;
+  color: var(--gold);
+  box-shadow: 0 0 20px var(--gold-glow-md);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+}
+.btn-outline:hover {
+  border-color: var(--gold);
+  background: rgba(201, 168, 76, 0.06);
+  box-shadow: 0 0 20px var(--gold-glow);
+}
+
+/* ═══════════════════════════════════════
+   PROBABILITY BAR
+═══════════════════════════════════════ */
+.prob-bar-wrap {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.prob-bar {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.prob-bar.animated { width: var(--target-width, 0%); }
+
+/* ═══════════════════════════════════════
+   DIVIDER
+═══════════════════════════════════════ */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+}
+
+.divider-gold {
+  width: 48px;
+  height: 1px;
+  background: var(--gold);
+}
+
+/* ═══════════════════════════════════════
+   TICKER ANIMATIONS
+═══════════════════════════════════════ */
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-track {
+  display: flex;
+  animation: ticker-scroll 28s linear infinite;
+  white-space: nowrap;
+}
+.ticker-track:hover { animation-play-state: paused; }
+
+/* ═══════════════════════════════════════
+   HEXAGON MESH BACKGROUND
+═══════════════════════════════════════ */
+.hex-mesh {
+  position: absolute;
+  inset: 0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52' viewBox='0 0 60 52'%3E%3Cpolygon points='30,2 58,16 58,36 30,50 2,36 2,16' fill='none' stroke='%23C9A84C' stroke-width='0.4' stroke-opacity='0.12'/%3E%3C/svg%3E");
+  background-size: 60px 52px;
+  opacity: 1;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════
+   MISC UTILITIES
+═══════════════════════════════════════ */
+.label-xs {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.label-sm {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.gold-rule {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
+  opacity: 0.4;
+}
+
+/* Bracket row hover */
+.bracket-row {
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+.bracket-row:hover {
+  background: rgba(201, 168, 76, 0.04);
+}
+.bracket-row.winner {
+  color: var(--gold);
+}
+
+/* Scorer row left-border accent */
+.scorer-row {
+  position: relative;
+  padding-left: 16px;
+  border-bottom: 1px solid var(--border);
+  transition: all var(--transition);
+}
+.scorer-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--gold);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform var(--transition);
+}
+.scorer-row:hover::before { transform: scaleY(1); }
+.scorer-row:hover { background: rgba(201, 168, 76, 0.03); }
+
+/* Fade-in animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fadeUp 0.6s ease forwards;
+}
+
+/* Nav active gold underline */
+.nav-link {
+  position: relative;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition);
+  padding-bottom: 4px;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--gold);
+  transition: width var(--transition);
+}
+.nav-link:hover, .nav-link.active {
+  color: var(--gold);
+}
+.nav-link:hover::after, .nav-link.active::after { width: 100%; }
+
+/* Radial glow container */
+.radial-glow {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
