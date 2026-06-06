@@ -340,27 +340,35 @@
 
 /* 4. RESET STRIP */
 .reset-strip {
-  height: 28px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-top: 1px solid var(--black-border);
+  background: rgba(200, 40, 40, 0.04);
 }
 .reset-button {
   font-family: var(--font-ui);
-  font-size: 8px;
-  letter-spacing: 2px;
-  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #ff6b6b;
   background: transparent;
-  border: 1px solid var(--black-border);
-  padding: 4px 12px;
+  border: 1px solid rgba(220, 60, 60, 0.45);
+  padding: 8px 22px;
   border-radius: 2px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   transition: all 0.2s ease;
 }
 .reset-button:hover {
-  color: var(--gold);
-  border-color: var(--gold-dim);
+  color: #fff;
+  background: rgba(200, 40, 40, 0.18);
+  border-color: #ff6b6b;
+  box-shadow: 0 0 14px rgba(220, 60, 60, 0.25);
 }
 
 /* TOAST NOTIFICATION */
@@ -644,4 +652,9 @@
 @keyframes fall {
   0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
   100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* SPINNER — used by DB saving indicators */
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

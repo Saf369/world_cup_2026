@@ -35,7 +35,13 @@ export default function VisualBracket() {
 
   const [toast, setToast] = useState<{ msg: string; visible: boolean }>({ msg: "", visible: false });
   const [hydrated, setHydrated] = useState(false);
+  // ─── DB sync state ───────────────────────────────────────────────────────
+  const [predictionId, setPredictionId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [championSaving, setChampionSaving] = useState(false);
+  const PID_KEY = 'mundial2026_pid';
 
+  // ─── TRIGGER 1: Page load — restore localStorage then create / hydrate DB ─
   useEffect(() => {
     try {
       const stored = localStorage.getItem(LS_KEY);
@@ -52,6 +58,38 @@ export default function VisualBracket() {
       }
     } catch { /* ignore */ }
     setHydrated(true);
+
+    // DB: check for existing predictionId or create one
+    const initPrediction = async () => {
+      try {
+        const storedPid = localStorage.getItem(PID_KEY);
+        if (storedPid) {
+          setPredictionId(storedPid);
+          // Optionally hydrate from DB (merge on top of localStorage)
+          const res = await fetch(`/api/bracket/get?predictionId=${storedPid}`);
+          if (!res.ok) return; // localStorage already restored — no problem
+          // We trust localStorage as primary — DB hydration is secondary
+        } else {
+          // Create a new anonymous prediction row
+          const storedMain = localStorage.getItem(LS_KEY);
+          const name = storedMain ? (JSON.parse(storedMain).userName || null) : null;
+          const res = await fetch('/api/bracket/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userName: name }),
+          });
+          if (res.ok) {
+            const { predictionId: newPid } = await res.json();
+            if (newPid) {
+              localStorage.setItem(PID_KEY, newPid);
+              setPredictionId(newPid);
+            }
+          }
+        }
+      } catch { /* DB unavailable — localStorage is fine */ }
+    };
+    initPrediction();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -160,22 +198,60 @@ export default function VisualBracket() {
   const confirmGroup = (groupId: string) => {
     setGroupSelections(prev => {
       const next = { ...prev, [groupId]: { ...prev[groupId], confirmed: true } };
-      return next;
-    });
 
-    const currentCount = Object.values(groupSelections).filter(g => g.confirmed).length;
-    if (currentCount + 1 === 12) {
+      const currentCount = Object.values(groupSelections).filter(g => g.confirmed).length;
+      const isLast = currentCount + 1 === 12;
+
+      if (isLast) {
+        // ─── TRIGGER 2: All 12 groups confirmed — save to DB ─────────────
+        const saveGroups = async () => {
+          if (!predictionId) return;
+          setIsSaving(true);
+          try {
+            const groups = GROUPS_DATA.map(g => {
+              const sel = next[g.id].selected;
+              const getFlag = (name: string) => g.teams.find(t => t.n === name)?.f ?? '';
+              return {
+                groupLetter: g.id,
+                firstTeam:   sel[0] ?? '',
+                firstFlag:   getFlag(sel[0]),
+                secondTeam:  sel[1] ?? '',
+                secondFlag:  getFlag(sel[1]),
+                thirdTeam:   sel[2] ?? null,
+                thirdFlag:   sel[2] ? getFlag(sel[2]) : null,
+              };
+            });
+            const res = await fetch('/api/bracket/save-groups', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ predictionId, groups }),
+            });
+            if (res.ok) {
+              showToast('✓ Groups saved');
+            } else {
+              showToast('Save failed — picks stored locally');
+            }
+          } catch {
+            showToast('Save failed — picks stored locally');
+          } finally {
+            setIsSaving(false);
+          }
+        };
+        saveGroups();
         showToast("All groups confirmed! Proceed to Best 8.");
         setTimeout(() => setActiveTab('best8'), 600);
-    } else {
+      } else {
         showToast(`✓ GROUP ${groupId} CONFIRMED`);
         const nextUnconfirmed = GROUPS_DATA.find(g => g.id !== groupId && !groupSelections[g.id].confirmed);
         if (nextUnconfirmed) {
-            setTimeout(() => {
-                document.getElementById(`group-${nextUnconfirmed.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
+          setTimeout(() => {
+            document.getElementById(`group-${nextUnconfirmed.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
         }
-    }
+      }
+
+      return next;
+    });
   };
 
   const confirmAllGroups = () => {
@@ -258,21 +334,64 @@ export default function VisualBracket() {
         newRounds[roundIdx][matchIdx] = team;
         clearDownstream(newRounds, roundIdx, matchIdx);
         showToast(`${team.f} ${team.n} ADVANCES`);
+
+        // ─── TRIGGER 4: Fire-and-forget bracket pick save ──────────────
+        if (predictionId) {
+          const roundNames = ['R32', 'R16', 'QF', 'SF', 'FINAL'];
+          const bracketHalf = matchIdx < (newRounds[roundIdx].length / 2) ? 1 : 2;
+          fetch('/api/bracket/save-pick', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              predictionId,
+              round:       roundNames[roundIdx] ?? `R${roundIdx}`,
+              matchIndex:  matchIdx,
+              homeTeam:    teamA.n,
+              homeFlag:    teamA.f,
+              awayTeam:    teamB.n,
+              awayFlag:    teamB.f,
+              winner:      team.n,
+              winnerFlag:  team.f,
+              bracketHalf,
+            }),
+          }).catch(() => { /* ignore — localStorage has it */ });
+        }
       }
       return newRounds;
     });
   };
 
-  const confirmChampion = () => {
+  // ─── TRIGGER 5: Confirm champion — await save, show spinner ─────────────
+  const confirmChampion = async () => {
     if (!championConfirmDialog) return;
     const team = championConfirmDialog;
-    
+
+    if (predictionId) {
+      setChampionSaving(true);
+      try {
+        const res = await fetch('/api/bracket/save-champion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            predictionId,
+            championTeam: team.n,
+            championFlag: team.f,
+          }),
+        });
+        if (!res.ok) showToast('Save failed — champion stored locally');
+      } catch {
+        showToast('Save failed — champion stored locally');
+      } finally {
+        setChampionSaving(false);
+      }
+    }
+
     setRounds((prevRounds) => {
       const newRounds = prevRounds.map((r) => [...r]);
       newRounds[4][0] = team;
       return newRounds;
     });
-    
+
     setConfirmedChampion(team);
     setChampionConfirmDialog(null);
     const dateStr = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -664,6 +783,20 @@ export default function VisualBracket() {
         </div>
 
         <div className="nav-right" style={{display: 'flex', gap: '16px', alignItems: 'center'}}>
+          {/* DB saving indicator */}
+          {isSaving && (
+            <span style={{
+              fontSize: '11px', color: 'var(--gold)', display: 'flex',
+              alignItems: 'center', gap: 4, opacity: 0.85,
+            }}>
+              <span style={{
+                width: 10, height: 10, border: '2px solid var(--gold)',
+                borderTopColor: 'transparent', borderRadius: '50%',
+                display: 'inline-block', animation: 'spin 0.8s linear infinite',
+              }} />
+              Saving...
+            </span>
+          )}
           {confirmedChampion && (
             <div 
               className="my-bracket-badge" 
@@ -821,10 +954,32 @@ export default function VisualBracket() {
               <button 
                 className="gc-btn" 
                 style={{marginTop: 20, maxWidth: 300, padding: 12}} 
-                onClick={() => {
-                   setThirdRankingsConfirmed(true);
-                   showToast("Best 8 Confirmed! R32 Bracket Filled!");
-                   setActiveTab('bracket');
+                onClick={async () => {
+                  setThirdRankingsConfirmed(true);
+                  showToast("Best 8 Confirmed! R32 Bracket Filled!");
+                  setActiveTab('bracket');
+                  // ─── TRIGGER 3: Save Best 8 to DB ─────────────────────
+                  if (predictionId) {
+                    setIsSaving(true);
+                    try {
+                      const ranking = thirdRankings.map((tName, idx) => {
+                        let flag = '', gId = '';
+                        Object.entries(groupSelections).forEach(([k, v]) => {
+                          if (v.selected[2] === tName) gId = k;
+                        });
+                        const grp = GROUPS_DATA.find(g => g.id === gId);
+                        if (grp) { const tm = grp.teams.find(x => x.n === tName); if (tm) flag = tm.f; }
+                        return { rank: idx + 1, team: tName, flag, groupLetter: gId, advances: idx < 8 };
+                      });
+                      const res = await fetch('/api/bracket/save-best8', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ predictionId, ranking }),
+                      });
+                      if (!res.ok) showToast('Save failed — picks stored locally');
+                    } catch { showToast('Save failed — picks stored locally'); }
+                    finally { setIsSaving(false); }
+                  }
                 }}
               >
                 Confirm Best 8
@@ -910,7 +1065,21 @@ export default function VisualBracket() {
             
             <div className="cm-actions">
               <button className="cm-btn cm-btn-back" onClick={() => setChampionConfirmDialog(null)}>GO BACK</button>
-              <button className="cm-btn cm-btn-confirm" onClick={confirmChampion}>CONFIRM CHAMPION</button>
+              <button
+                className="cm-btn cm-btn-confirm"
+                onClick={confirmChampion}
+                disabled={championSaving}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, opacity: championSaving ? 0.7 : 1 }}
+              >
+                {championSaving && (
+                  <span style={{
+                    width: 12, height: 12, border: '2px solid #000',
+                    borderTopColor: 'transparent', borderRadius: '50%',
+                    display: 'inline-block', animation: 'spin 0.8s linear infinite',
+                  }} />
+                )}
+                {championSaving ? 'SAVING...' : 'CONFIRM CHAMPION'}
+              </button>
             </div>
           </div>
         </div>
