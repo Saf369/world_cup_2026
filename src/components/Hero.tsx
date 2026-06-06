@@ -201,15 +201,7 @@ export default function Hero() {
             opacity: 0.5,
           }}
         >
-          <span className="label-xs">Scroll</span>
-          <div
-            style={{
-              width: 1,
-              height: 48,
-              background: "linear-gradient(to bottom, #C9A84C, transparent)",
-              animation: "scrollPulse 1.8s ease-in-out infinite",
-            }}
-          />
+         
         </div>
       </div>
 
