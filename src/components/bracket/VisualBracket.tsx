@@ -69,6 +69,11 @@ export default function VisualBracket() {
   
   const [rounds, setRounds] = useState<(Team | null)[][]>(INITIAL_ROUNDS);
   const [customTeams, setCustomTeams] = useState<Record<string, string>>({});
+  const [championConfirmDialog, setChampionConfirmDialog] = useState<Team | null>(null);
+  const [confirmedChampion, setConfirmedChampion] = useState<Team | null>(null);
+  const [userName, setUserName] = useState<string>("");
+  const [predictionDate, setPredictionDate] = useState<string>("");
+  const [showChampionCard, setShowChampionCard] = useState<boolean>(false);
 
   const [toast, setToast] = useState<{ msg: string; visible: boolean }>({ msg: "", visible: false });
   const [hydrated, setHydrated] = useState(false);
@@ -83,6 +88,9 @@ export default function VisualBracket() {
         if (parsed.customTeams) setCustomTeams(parsed.customTeams);
         if (parsed.thirdRankings) setThirdRankings(parsed.thirdRankings);
         if (parsed.thirdRankingsConfirmed !== undefined) setThirdRankingsConfirmed(parsed.thirdRankingsConfirmed);
+        if (parsed.confirmedChampion) setConfirmedChampion(parsed.confirmedChampion);
+        if (parsed.userName) setUserName(parsed.userName);
+        if (parsed.predictionDate) setPredictionDate(parsed.predictionDate);
       }
     } catch { /* ignore */ }
     setHydrated(true);
@@ -90,10 +98,19 @@ export default function VisualBracket() {
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(LS_KEY, JSON.stringify({ groupSelections, rounds, customTeams, thirdRankings, thirdRankingsConfirmed }));
-  }, [groupSelections, rounds, customTeams, thirdRankings, thirdRankingsConfirmed, hydrated]);
+    localStorage.setItem(LS_KEY, JSON.stringify({ groupSelections, rounds, customTeams, thirdRankings, thirdRankingsConfirmed, confirmedChampion, userName, predictionDate }));
+  }, [groupSelections, rounds, customTeams, thirdRankings, thirdRankingsConfirmed, confirmedChampion, userName, predictionDate, hydrated]);
 
   // ─── LOGIC ─────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!document.getElementById("jspdf-script")) {
+      const script = document.createElement("script");
+      script.id = "jspdf-script";
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+      document.body.appendChild(script);
+    }
+  }, []);
 
   const showToast = useCallback((msg: string) => {
     setToast({ msg, visible: true });
@@ -243,27 +260,122 @@ export default function VisualBracket() {
   };
 
   const handlePick = (roundIdx: number, matchIdx: number, team: Team, teamA: Team, teamB: Team) => {
-    if (teamA.n === "TBD" || teamB.n === "TBD" || teamA.seed === "3rd" || teamB.seed === "3rd") {
-        if (team.n === "TBD" || team.seed === "3rd") return; // Let custom typed names work? Wait, if they type it, it's fine.
-        if (teamA.seed === "3rd" && !customTeams[`r${roundIdx}-m${matchIdx}-s0`]) return;
-        if (teamB.seed === "3rd" && !customTeams[`r${roundIdx}-m${matchIdx}-s1`]) return;
-    }
+    if (teamA.n === "TBD" || teamB.n === "TBD" || teamA.n === "3rd Place TBD" || teamB.n === "3rd Place TBD") return;
     if (team.n === "TBD" || team.n === "3rd Place TBD") return;
+
+    if (roundIdx === 4 && rounds[4][0]?.n !== team.n) {
+        setChampionConfirmDialog(team);
+        return;
+    }
 
     setRounds((prevRounds) => {
       const newRounds = prevRounds.map((r) => [...r]);
       if (newRounds[roundIdx][matchIdx]?.n !== team.n) {
         newRounds[roundIdx][matchIdx] = team;
         clearDownstream(newRounds, roundIdx, matchIdx);
-        
-        if (roundIdx === 4) {
-             showToast(`🏆 ${team.n} — YOUR 2026 CHAMPION!`);
-        } else {
-             showToast(`${team.f} ${team.n} ADVANCES`);
-        }
+        showToast(`${team.f} ${team.n} ADVANCES`);
       }
       return newRounds;
     });
+  };
+
+  const confirmChampion = () => {
+    if (!championConfirmDialog) return;
+    const team = championConfirmDialog;
+    
+    setRounds((prevRounds) => {
+      const newRounds = prevRounds.map((r) => [...r]);
+      newRounds[4][0] = team;
+      return newRounds;
+    });
+    
+    setConfirmedChampion(team);
+    setChampionConfirmDialog(null);
+    const dateStr = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    setPredictionDate(dateStr);
+    setShowChampionCard(true);
+    showToast(`🏆 ${team.n} — YOUR 2026 CHAMPION!`);
+  };
+
+  const generatePDF = () => {
+    if (typeof window === 'undefined' || !(window as any).jspdf) {
+        showToast("PDF generator loading, please wait...");
+        return;
+    }
+    const { jsPDF } = (window as any).jspdf;
+    const doc = new jsPDF();
+    
+    doc.setFillColor(6, 8, 16);
+    doc.rect(0, 0, 210, 297, 'F');
+    doc.setTextColor(201, 168, 76);
+    
+    doc.setFontSize(24);
+    doc.text("WORLD CUP 2026 CHAMPION", 105, 40, { align: "center" });
+    doc.setFontSize(14);
+    doc.text("YOUR PREDICTION", 105, 50, { align: "center" });
+    doc.setFontSize(40);
+    doc.text(confirmedChampion?.n || "Unknown", 105, 100, { align: "center" });
+    doc.setFontSize(12);
+    doc.text(`Predicted by: ${userName || 'My Prediction'}`, 105, 140, { align: "center" });
+    doc.text(`Date predicted: ${predictionDate}`, 105, 150, { align: "center" });
+    doc.text("FIFA World Cup 2026 · USA · Canada · Mexico", 105, 170, { align: "center" });
+    doc.text("Generated by MUNDIAL Predictor · mundial2026", 105, 280, { align: "center" });
+
+    doc.addPage();
+    doc.setFillColor(6, 8, 16);
+    doc.rect(0, 0, 210, 297, 'F');
+    doc.setTextColor(201, 168, 76);
+    doc.setFontSize(18);
+    doc.text("BRACKET SUMMARY", 105, 30, { align: "center" });
+    doc.setFontSize(10);
+    let y = 50;
+    const roundNames = ["Round of 32", "Round of 16", "Quarter-Finals", "Semi-Finals", "Final"];
+    rounds.forEach((round, rIdx) => {
+       if (!round || !round.some(Boolean)) return;
+       doc.text(`--- ${roundNames[rIdx]} ---`, 20, y);
+       y += 8;
+       if (rIdx < 4) {
+          for (let m = 0; m < round.length; m += 2) {
+             const teamA = rounds[rIdx][m]?.n || "TBD";
+             const teamB = rounds[rIdx][m+1]?.n || "TBD";
+             const winner = rounds[rIdx+1]?.[m/2]?.n || "TBD";
+             doc.text(`${teamA} vs ${teamB}`, 20, y);
+             const wText = `=> ${winner}`;
+             doc.text(wText, 80, y);
+             const wWidth = doc.getTextWidth(wText);
+             doc.line(80, y + 1, 80 + wWidth, y + 1);
+             y += 6;
+             if (y > 270) { doc.addPage(); doc.setFillColor(6, 8, 16); doc.rect(0, 0, 210, 297, 'F'); y = 20; }
+          }
+       }
+       y += 6;
+    });
+
+    doc.addPage();
+    doc.setFillColor(6, 8, 16);
+    doc.rect(0, 0, 210, 297, 'F');
+    doc.setTextColor(201, 168, 76);
+    doc.setFontSize(18);
+    doc.text("GROUP STAGE SUMMARY", 105, 30, { align: "center" });
+    doc.setFontSize(10);
+    y = 50;
+    GROUPS_DATA.forEach(g => {
+        const sel = groupSelections[g.id];
+        const t1 = sel.selected[0] || "TBD";
+        const t2 = sel.selected[1] || "TBD";
+        doc.text(`Group ${g.id}: 1st - ${t1}, 2nd - ${t2}`, 20, y);
+        y += 8;
+    });
+    y += 10;
+    doc.text("Advancing 3rd Place Teams:", 20, y);
+    y += 8;
+    thirdRankings.slice(0, 8).forEach((t, i) => {
+       doc.text(`${i+1}. ${t}`, 20, y);
+       y += 6;
+    });
+
+    doc.text("Generated by MUNDIAL Predictor · mundial2026", 105, 280, { align: "center" });
+    doc.save(`MUNDIAL-2026-${confirmedChampion?.n}-${predictionDate.replace(/ /g, '_')}.pdf`);
   };
 
   const resetBracket = () => {
@@ -331,16 +443,9 @@ export default function VisualBracket() {
         );
     };
 
-    const seedEl = team.seed ? (
-       <span className={`seed-badge seed-${team.seed.toLowerCase()}`} title={isAutoFilled ? "Auto-filled ✓" : ""}>
-         {team.seed}
-       </span>
-    ) : <span className="seed">{team.seed}</span>;
-
     const leftContent = isRightSide ? (
       <>
         {badge}
-        {seedEl}
         {renderName()}
         <span className="flag">{team.f}</span>
       </>
@@ -348,7 +453,6 @@ export default function VisualBracket() {
       <>
         <span className="flag">{team.f}</span>
         {renderName()}
-        {seedEl}
         {badge}
       </>
     );
@@ -470,7 +574,16 @@ export default function VisualBracket() {
           <div className={`round-pill ${counts.final === 1 ? "active" : ""}`}>Final</div>
         </div>
 
-        <div className="nav-right">
+        <div className="nav-right" style={{display: 'flex', gap: '16px', alignItems: 'center'}}>
+          {confirmedChampion && (
+            <div 
+              className="my-bracket-badge" 
+              style={{ cursor: 'pointer', background: 'rgba(201,168,76,0.1)', color: 'var(--gold)', border: '1px solid var(--gold-dim)' }}
+              onClick={() => setShowChampionCard(true)}
+            >
+              🏆 View My Prediction
+            </div>
+          )}
           <Link href="/" className="my-bracket-badge" style={{ textDecoration: 'none', display: 'inline-block', cursor: 'pointer' }}>
             ← BACK TO HOME
           </Link>
@@ -674,6 +787,66 @@ export default function VisualBracket() {
       <div className={`toast-notification ${toast.visible ? "visible" : ""}`}>
         {toast.msg}
       </div>
+
+      {/* CONFIRMATION DIALOG */}
+      {championConfirmDialog && (
+        <div className="modal-overlay">
+          <div className="confirm-modal">
+            <div className="modal-flag">{championConfirmDialog.f}</div>
+            <div className="modal-title">{championConfirmDialog.n}</div>
+            <p>Are you sure this is your predicted champion?</p>
+            <div className="modal-actions">
+              <button className="btn-outline" onClick={() => setChampionConfirmDialog(null)}>Go back</button>
+              <button className="btn-filled" onClick={confirmChampion}>Yes, confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CHAMPION CARD */}
+      {showChampionCard && confirmedChampion && (
+        <div className="champion-overlay">
+          <div className="confetti-container">
+            {Array.from({ length: 50 }).map((_, i) => (
+               <div key={i} className="confetti" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 3}s` }}></div>
+            ))}
+          </div>
+          <button className="close-champion" onClick={() => setShowChampionCard(false)}>✕ Close</button>
+          
+          <div className="champion-card">
+             <div className="champ-card-glow"></div>
+             <div className="champ-card-shimmer"></div>
+             <div className="corner-flourish tl"></div>
+             <div className="corner-flourish tr"></div>
+             <div className="corner-flourish bl"></div>
+             <div className="corner-flourish br"></div>
+             
+             <div className="champ-header">🏆 WORLD CUP 2026 CHAMPION</div>
+             <div className="champ-subtext">YOUR PREDICTION</div>
+             <div className="champ-big-flag">{confirmedChampion.f}</div>
+             <div className="champ-big-name">{confirmedChampion.n}</div>
+             <div className="champ-divider"></div>
+             
+             <div className="champ-meta">
+               <div style={{marginBottom: 10}}>
+                 Predicted by: <input className="name-input" style={{textAlign: 'center', display: 'inline', width: '120px', background: 'rgba(0,0,0,0.5)', padding: '2px 8px'}} value={userName} onChange={e => setUserName(e.target.value)} placeholder="My Prediction" />
+               </div>
+               <div>Date predicted: {predictionDate}</div>
+               <div>FIFA World Cup 2026 · USA · Canada · Mexico</div>
+             </div>
+
+             <div className="champ-share-section">
+               <div className="share-label">SHARE YOUR PREDICTION</div>
+               <div className="share-buttons">
+                 <button onClick={generatePDF}>📄 Download PDF</button>
+                 <button onClick={() => window.open(`whatsapp://send?text=My FIFA World Cup 2026 Champion is ${confirmedChampion.n}! Predict yours at MUNDIAL.`)}>💬 WhatsApp</button>
+                 <button onClick={() => window.open(`https://twitter.com/intent/tweet?text=My FIFA World Cup 2026 Champion is ${confirmedChampion.n}! Predict yours at MUNDIAL.`)}>𝕏 Twitter</button>
+                 <button onClick={() => { navigator.clipboard.writeText(`My FIFA World Cup 2026 Champion is ${confirmedChampion.n}! Predict yours at MUNDIAL.`); showToast("Link copied!"); }}>🔗 Copy Link</button>
+               </div>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
