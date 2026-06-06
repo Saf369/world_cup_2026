@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { BracketProvider } from "@/components/bracket/BracketProvider";
-import BracketPage from "@/components/bracket/BracketPage";
+import VisualBracket from "@/components/bracket/VisualBracket";
 
 export const metadata: Metadata = {
   title: "MY BRACKET — MUNDIAL 2026 Predictor",
@@ -10,8 +9,6 @@ export const metadata: Metadata = {
 
 export default function BracketRoute() {
   return (
-    <BracketProvider>
-      <BracketPage />
-    </BracketProvider>
+    <VisualBracket />
   );
 }

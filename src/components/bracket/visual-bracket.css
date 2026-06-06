@@ -1,0 +1,387 @@
+.visual-bracket-page {
+  min-height: 100vh;
+  background-color: var(--black);
+  background-image: radial-gradient(ellipse 80% 50% at 50% 30%, rgba(201,168,76,0.03) 0%, transparent 70%);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-ui);
+  color: var(--text-primary);
+  /* Use explicit vars locally to ensure independence */
+  --gold: #C9A84C;
+  --gold-light: #E8C96A;
+  --gold-pale: #F5E4A0;
+  --gold-dim: #7A6230;
+  --gold-faint: rgba(201,168,76,0.07);
+  --black: #060810;
+  --black-card: #0C0E18;
+  --black-panel: #10131F;
+  --black-surface: #161926;
+  --black-border: #1E2235;
+  --text-primary: #F0E8D0;
+  --text-secondary: #9A8860;
+  --text-muted: #4A4430;
+}
+
+/* 1. NAVIGATION BAR */
+.nav-bar {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  background: var(--black-panel);
+  border-bottom: 1px solid var(--black-border);
+}
+.nav-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.logo-link {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  text-decoration: none;
+}
+.sub-label {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  color: var(--text-muted);
+}
+.nav-center {
+  display: flex;
+  gap: 8px;
+}
+.round-pill {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 600;
+  background: var(--black);
+  color: var(--text-muted);
+  border: 1px solid var(--black-border);
+  transition: all 0.2s ease;
+}
+.round-pill.active {
+  color: var(--gold);
+  border-color: var(--gold-dim);
+  background: var(--gold-faint);
+}
+.my-bracket-badge {
+  padding: 6px 12px;
+  border-radius: 2px;
+  font-family: var(--font-ui);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--gold);
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+}
+
+/* 2. INSTRUCTION STRIP */
+.instruction-strip {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--black-card);
+  border-bottom: 1px solid var(--black-border);
+  font-family: var(--font-ui);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+}
+.instruction-strip .highlight {
+  color: var(--gold);
+}
+
+/* 3. BRACKET AREA */
+.bracket-scroll-container {
+  flex: 1;
+  overflow: auto;
+}
+.bracket-inner {
+  min-width: 1100px;
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  padding: 40px 20px;
+  gap: 12px;
+}
+
+/* COLUMNS */
+.bracket-column {
+  display: flex;
+  flex-direction: column;
+}
+.column-header {
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 3px;
+  text-align: center;
+  padding: 6px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--gold-dim);
+}
+.column-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 12px;
+}
+
+/* MATCH SLOT */
+.match-slot {
+  display: flex;
+  flex-direction: column;
+}
+.divider-line {
+  height: 1px;
+  background: var(--black-border);
+  width: 100%;
+}
+
+/* TEAM CARD */
+.team-card {
+  min-height: 30px;
+  background: var(--black-card);
+  border: 1px solid var(--black-border);
+  padding: 5px 7px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  transition: all 0.18s ease;
+}
+.team-card.left-side::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: var(--gold);
+  transform: scaleY(0);
+  transition: transform 0.18s ease;
+}
+.team-card.right-side::before {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: var(--gold);
+  transform: scaleY(0);
+  transition: transform 0.18s ease;
+}
+
+.team-card:not(.empty):hover {
+  background: var(--black-surface);
+  border-color: var(--gold-dim);
+  cursor: pointer;
+}
+.team-card:not(.empty):hover::before {
+  transform: scaleY(1);
+}
+
+.team-card.winner {
+  background: rgba(201,168,76,0.09);
+  border-color: var(--gold-dim);
+}
+.team-card.winner::before {
+  transform: scaleY(1);
+}
+.team-card.winner .name {
+  color: var(--gold);
+  font-weight: 700;
+}
+.team-card.winner .advances-badge {
+  opacity: 1;
+}
+
+.team-card.loser {
+  opacity: 0.32;
+}
+.team-card.loser .name {
+  text-decoration: line-through;
+}
+
+.team-card.empty {
+  opacity: 0.3;
+  background: var(--black-panel);
+  border-style: dashed;
+  cursor: default;
+}
+
+/* Team Card Internals */
+.team-card .flag {
+  font-size: 14px;
+}
+.team-card .name {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.team-card .seed {
+  font-family: var(--font-ui);
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: var(--gold-dim);
+}
+.advances-badge {
+  font-family: var(--font-ui);
+  font-size: 6px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  background: var(--gold);
+  color: var(--black);
+  padding: 1px 5px;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* FINAL COLUMN */
+.final-column .final-card-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.final-card {
+  width: 100%;
+  background: var(--black-card);
+  border: 1px solid var(--gold-dim);
+  border-top: 2px solid;
+  border-image: linear-gradient(to right, transparent, var(--gold), transparent) 1;
+  position: relative;
+  padding: 12px;
+}
+.glow-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 80% at 50% 50%, rgba(201,168,76,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+.final-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.finalists-area {
+  display: flex;
+  flex-direction: column;
+}
+.team-card.final-row {
+  border: none;
+  background: transparent;
+  padding: 8px;
+}
+.team-card.final-row::before {
+  display: none;
+}
+.team-card.final-row:not(.empty):hover {
+  background: rgba(201,168,76,0.06);
+}
+.team-card.final-row.winner {
+  background: rgba(201,168,76,0.10);
+}
+.team-card.final-row.loser {
+  opacity: 0.35;
+}
+.team-card.final-row .flag {
+  font-size: 18px;
+}
+.team-card.final-row .name {
+  font-size: 10px;
+}
+.champion-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.champ-flag {
+  font-size: 22px;
+}
+.champ-label {
+  font-family: var(--font-ui);
+  font-size: 7px;
+  letter-spacing: 3px;
+  color: var(--text-muted);
+}
+.champ-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--gold);
+  letter-spacing: 3px;
+}
+@keyframes champPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+.champ-pulse {
+  animation: champPulse 2s ease-in-out 1;
+}
+
+/* 4. RESET STRIP */
+.reset-strip {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid var(--black-border);
+}
+.reset-button {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--black-border);
+  padding: 4px 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.reset-button:hover {
+  color: var(--gold);
+  border-color: var(--gold-dim);
+}
+
+/* TOAST NOTIFICATION */
+.toast-notification {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: var(--black-card);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 4px;
+  padding: 12px 24px;
+  box-shadow: 0 0 20px rgba(201,168,76,0.15);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.toast-notification.visible {
+  transform: translateX(-50%) translateY(0);
+}
