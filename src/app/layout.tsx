@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { MundialProvider } from "../components/mundial/MundialProvider";
 
 export const metadata: Metadata = {
   title: "MUNDIAL — World Cup 2026 Predictor",
@@ -32,7 +33,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <MundialProvider>
+          {children}
+        </MundialProvider>
+      </body>
     </html>
   );
 }

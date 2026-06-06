@@ -16,75 +16,7 @@ export interface Team {
 
 // Pre-seeded R32 matchups.
 // 8 left matches, 8 right matches
-const R32_DATA = [
-  // LEFT SIDE R32 (8 matches, top to bottom)
-  [
-    { n: "Germany", f: "🇩🇪", seed: "1E" },
-    { n: "Australia", f: "🇦🇺", seed: "3D" },
-  ],
-  [
-    { n: "France", f: "🇫🇷", seed: "1I" },
-    { n: "Egypt", f: "🇪🇬", seed: "3G" },
-  ],
-  [
-    { n: "Denmark", f: "🇩🇰", seed: "2A" },
-    { n: "Switzerland", f: "🇨🇭", seed: "2B" },
-  ],
-  [
-    { n: "Netherlands", f: "🇳🇱", seed: "1F" },
-    { n: "Morocco", f: "🇲🇦", seed: "2C" },
-  ],
-  [
-    { n: "Colombia", f: "🇨🇴", seed: "2K" },
-    { n: "Croatia", f: "🇭🇷", seed: "2L" },
-  ],
-  [
-    { n: "Spain", f: "🇪🇸", seed: "1H" },
-    { n: "Austria", f: "🇦🇹", seed: "2J" },
-  ],
-  [
-    { n: "USA", f: "🇺🇸", seed: "1D" },
-    { n: "Canada", f: "🇨🇦", seed: "3B" },
-  ],
-  [
-    { n: "Belgium", f: "🇧🇪", seed: "1G" },
-    { n: "South Korea", f: "🇰🇷", seed: "3A" },
-  ],
-
-  // RIGHT SIDE R32 (8 matches, top to bottom)
-  [
-    { n: "Brazil", f: "🇧🇷", seed: "1C" },
-    { n: "Japan", f: "🇯🇵", seed: "2F" },
-  ],
-  [
-    { n: "Ecuador", f: "🇪🇨", seed: "2E" },
-    { n: "Senegal", f: "🇸🇳", seed: "2I" },
-  ],
-  [
-    { n: "Mexico", f: "🇲🇽", seed: "1A" },
-    { n: "Ukraine", f: "🇺🇦", seed: "3F" },
-  ],
-  [
-    { n: "England", f: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", seed: "1L" },
-    { n: "Norway", f: "🇳🇴", seed: "3I" },
-  ],
-  [
-    { n: "Argentina", f: "🇦🇷", seed: "1J" },
-    { n: "Uruguay", f: "🇺🇾", seed: "2H" },
-  ],
-  [
-    { n: "Türkiye", f: "🇹🇷", seed: "2D" },
-    { n: "Iran", f: "🇮🇷", seed: "2G" },
-  ],
-  [
-    { n: "Italy", f: "🇮🇹", seed: "1B" },
-    { n: "Algeria", f: "🇩🇿", seed: "3J" },
-  ],
-  [
-    { n: "Portugal", f: "🇵🇹", seed: "1K" },
-    { n: "Panama", f: "🇵🇦", seed: "3L" },
-  ],
-];
+import { useMundial } from "../mundial/MundialProvider";
 
 // Helper to make an empty team
 const EMPTY_TEAM = { n: "TBD", f: "", seed: "" };
@@ -102,6 +34,36 @@ const LS_KEY = "mundial_bracket_v2_visual";
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 
 export default function VisualBracket() {
+  const { qualifiedTeams } = useMundial();
+
+  const generatedR32Data = React.useMemo(() => {
+    if (!qualifiedTeams) return Array.from({ length: 16 }, () => [{ ...EMPTY_TEAM }, { ...EMPTY_TEAM }]);
+    
+    const firsts = qualifiedTeams.filter(t => t.pos === '1st');
+    const seconds = qualifiedTeams.filter(t => t.pos === '2nd');
+    const thirds = qualifiedTeams.filter(t => t.pos === '3rd');
+
+    const matchups: Team[][] = Array.from({ length: 16 }, () => []);
+    
+    for (let i = 0; i < 16; i++) {
+        if (i < 12) {
+            matchups[i].push({ n: firsts[i].name, f: firsts[i].flag, seed: `1${firsts[i].group}` });
+        } else {
+            matchups[i].push({ n: thirds[i - 12].name, f: thirds[i - 12].flag, seed: `3${thirds[i - 12].group}` });
+        }
+    }
+
+    for (let i = 0; i < 16; i++) {
+        if (i < 12) {
+            matchups[i].push({ n: seconds[i].name, f: seconds[i].flag, seed: `2${seconds[i].group}` });
+        } else {
+            matchups[i].push({ n: thirds[i - 12 + 4].name, f: thirds[i - 12 + 4].flag, seed: `3${thirds[i - 12 + 4].group}` });
+        }
+    }
+
+    return matchups;
+  }, [qualifiedTeams]);
+
   const [rounds, setRounds] = useState<(Team | null)[][]>(INITIAL_ROUNDS);
   const [toast, setToast] = useState<{ msg: string; visible: boolean }>({
     msg: "",
@@ -143,7 +105,7 @@ export default function VisualBracket() {
   const getTeamAt = useCallback(
     (roundIdx: number, matchIdx: number, side: 0 | 1): Team => {
       if (roundIdx === 0) {
-        return R32_DATA[matchIdx][side];
+        return generatedR32Data[matchIdx][side];
       }
       const prevRoundIdx = roundIdx - 1;
       const prevRound = rounds[prevRoundIdx];
@@ -386,7 +348,11 @@ export default function VisualBracket() {
 
       {/* 2. INSTRUCTION STRIP */}
       <div className="instruction-strip">
-        Click a team to pick the <span className="highlight">WINNER</span> — bracket auto-advances round by round
+        {!qualifiedTeams ? (
+          <span>Complete the Group Stage to auto-fill teams.</span>
+        ) : (
+          <span>Click a team to pick the <span className="highlight">WINNER</span> — bracket auto-advances round by round. (From Group Stage ✓)</span>
+        )}
       </div>
 
       {/* 3. BRACKET AREA */}
