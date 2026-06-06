@@ -18,7 +18,7 @@ export interface GroupData {
 }
 
 export interface GroupSelection {
-  selected: string[]; // array of team names, up to 2
+  selected: string[]; // array of team names, up to 3
   confirmed: boolean;
 }
 
@@ -125,8 +125,7 @@ export default function VisualBracket() {
   useEffect(() => {
     if (groupsAllConfirmed && thirdRankings.length === 0) {
       const thirds = GROUPS_DATA.map(g => {
-        const sel = groupSelections[g.id].selected;
-        return g.teams.filter(t => !sel.includes(t.n))[0].n;
+        return groupSelections[g.id].selected[2];
       });
       setThirdRankings(thirds);
     } else if (!groupsAllConfirmed) {
@@ -173,8 +172,7 @@ export default function VisualBracket() {
        const tName = best8[idx];
        let gId = "";
        Object.entries(groupSelections).forEach(([k,v]) => {
-           const unselected = GROUPS_DATA.find(g => g.id === k)!.teams.filter(t => !v.selected.includes(t.n));
-           if (unselected[0]?.n === tName) gId = k;
+           if (v.selected[2] === tName) gId = k;
        });
        if (!gId) return {...TBD_3};
        const g = GROUPS_DATA.find(x => x.id === gId)!;
@@ -196,7 +194,7 @@ export default function VisualBracket() {
       if (sel.includes(teamName)) {
         return { ...prev, [groupId]: { ...prev[groupId], selected: sel.filter(x => x !== teamName) } };
       }
-      if (sel.length >= 2) return prev;
+      if (sel.length >= 3) return prev;
       return { ...prev, [groupId]: { ...prev[groupId], selected: [...sel, teamName] } };
     });
   };
@@ -204,14 +202,42 @@ export default function VisualBracket() {
   const confirmGroup = (groupId: string) => {
     setGroupSelections(prev => {
       const next = { ...prev, [groupId]: { ...prev[groupId], confirmed: true } };
-      const count = Object.values(next).filter(g => g.confirmed).length;
-      if (count === 12) {
-        showToast("All groups confirmed! Proceed to Best 8.");
-      } else {
-        showToast(`✓ GROUP ${groupId} CONFIRMED`);
-      }
       return next;
     });
+
+    const currentCount = Object.values(groupSelections).filter(g => g.confirmed).length;
+    if (currentCount + 1 === 12) {
+        showToast("All groups confirmed! Proceed to Best 8.");
+        setTimeout(() => setActiveTab('best8'), 600);
+    } else {
+        showToast(`✓ GROUP ${groupId} CONFIRMED`);
+        const nextUnconfirmed = GROUPS_DATA.find(g => g.id !== groupId && !groupSelections[g.id].confirmed);
+        if (nextUnconfirmed) {
+            setTimeout(() => {
+                document.getElementById(`group-${nextUnconfirmed.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    }
+  };
+
+  const confirmAllGroups = () => {
+    setGroupSelections(prev => {
+      const next = { ...prev };
+      GROUPS_DATA.forEach(g => {
+        const currentSel = next[g.id].selected;
+        if (currentSel.length < 3) {
+            const unselected = g.teams.filter(t => !currentSel.includes(t.n));
+            const needed = 3 - currentSel.length;
+            const newSelections = [...currentSel, ...unselected.slice(0, needed).map(t => t.n)];
+            next[g.id] = { selected: newSelections, confirmed: true };
+        } else {
+            next[g.id] = { ...next[g.id], confirmed: true };
+        }
+      });
+      return next;
+    });
+    showToast("All groups auto-filled and confirmed! Proceed to Best 8.");
+    setTimeout(() => setActiveTab('best8'), 600);
   };
 
   const getTeamAt = useCallback((roundIdx: number, matchIdx: number, side: 0 | 1): Team => {
@@ -591,11 +617,21 @@ export default function VisualBracket() {
       </div>
 
       {activeTab === 'groups' && (
-        <div className="gs-grid">
-          {GROUPS_DATA.map(group => {
+        <>
+          <div style={{ textAlign: 'center', margin: '20px 0' }}>
+            <button 
+              className="gc-btn" 
+              style={{ width: 'auto', padding: '12px 32px', display: 'inline-flex', fontSize: '12px', gap: '8px' }}
+              onClick={confirmAllGroups}
+            >
+              ⚡ AUTO-FILL & CONFIRM ALL GROUPS
+            </button>
+          </div>
+          <div className="gs-grid">
+            {GROUPS_DATA.map(group => {
             const sel = groupSelections[group.id];
             return (
-              <div key={group.id} className="gc-card">
+              <div key={group.id} id={`group-${group.id}`} className="gc-card">
                 <div className="gc-header">
                   <div className="gc-letter">{group.id}</div>
                   {sel.confirmed && <div className="gc-badge">✓ DONE</div>}
@@ -626,7 +662,7 @@ export default function VisualBracket() {
                            right: 0, 
                            height: 40, 
                            transition: 'top 0.3s ease, opacity 0.3s ease, background 0.2s',
-                           opacity: (!isSelected && sel.selected.length === 2) ? 0.4 : 1,
+                           opacity: (!isSelected && sel.selected.length === 3) ? 0.4 : 1,
                            pointerEvents: sel.confirmed ? 'none' : 'auto'
                         }}
                       >
@@ -634,13 +670,13 @@ export default function VisualBracket() {
                         <div className="gc-flag">{t.f}</div>
                         <div className="gc-name">{t.n}</div>
                         {isSelected && (
-                          <div className={`gc-sel-badge ${selIndex === 0 ? 'badge-1st' : 'badge-2nd'}`}>
-                            {selIndex === 0 ? '1st' : '2nd'}
+                          <div className={`gc-sel-badge ${selIndex === 0 ? 'badge-1st' : selIndex === 1 ? 'badge-2nd' : 'badge-3rd'}`}>
+                            {selIndex === 0 ? '1st' : selIndex === 1 ? '2nd' : '3rd'}
                           </div>
                         )}
-                        {!isSelected && sel.selected.length === 2 && (
-                          <div className={`gc-sel-badge ${displayPos === 2 ? 'badge-3rd' : 'badge-4th'}`}>
-                            {displayPos === 2 ? '3rd' : '4th'}
+                        {!isSelected && sel.selected.length === 3 && (
+                          <div className={`gc-sel-badge badge-4th`}>
+                            4th
                           </div>
                         )}
                       </div>
@@ -650,7 +686,7 @@ export default function VisualBracket() {
                 <div className="gc-btn-wrap">
                   <button 
                     className="gc-btn" 
-                    disabled={sel.selected.length !== 2 || sel.confirmed}
+                    disabled={sel.selected.length !== 3 || sel.confirmed}
                     onClick={() => confirmGroup(group.id)}
                   >
                     {sel.confirmed ? `Group ${group.id} Confirmed` : `Confirm Group ${group.id}`}
@@ -660,6 +696,7 @@ export default function VisualBracket() {
             );
           })}
         </div>
+        </>
       )}
 
       {activeTab === 'best8' && (
@@ -672,8 +709,7 @@ export default function VisualBracket() {
             {thirdRankings.map((tName, idx) => {
               let flag = "", gId = "";
               Object.entries(groupSelections).forEach(([k,v]) => {
-                const unselected = GROUPS_DATA.find(g => g.id === k)!.teams.filter(t => !v.selected.includes(t.n));
-                if (unselected[0]?.n === tName) gId = k;
+                if (v.selected[2] === tName) gId = k;
               });
               const grp = GROUPS_DATA.find(g => g.id === gId);
               if (grp) { const tm = grp.teams.find(x => x.n === tName); if(tm) flag = tm.f; }
@@ -790,14 +826,28 @@ export default function VisualBracket() {
 
       {/* CONFIRMATION DIALOG */}
       {championConfirmDialog && (
-        <div className="modal-overlay">
-          <div className="confirm-modal">
-            <div className="modal-flag">{championConfirmDialog.f}</div>
-            <div className="modal-title">{championConfirmDialog.n}</div>
-            <p>Are you sure this is your predicted champion?</p>
-            <div className="modal-actions">
-              <button className="btn-outline" onClick={() => setChampionConfirmDialog(null)}>Go back</button>
-              <button className="btn-filled" onClick={confirmChampion}>Yes, confirm</button>
+        <div className="modal-overlay" onClick={() => setChampionConfirmDialog(null)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="cm-header">
+              <div className="cm-sup">MUNDIAL 2026</div>
+              <div className="cm-sub">FINAL PREDICTION</div>
+              <div className="cm-divider"></div>
+            </div>
+            
+            <div className="cm-team">
+              <div className="cm-flag">{championConfirmDialog.f}</div>
+              <div className="cm-name">{championConfirmDialog.n}</div>
+              <div className="cm-pill">YOUR PREDICTED CHAMPION</div>
+            </div>
+            
+            <div className="cm-question">
+              <div className="cm-q-title">Are you sure?</div>
+              <div className="cm-q-desc">This will lock your bracket and generate your champion card.</div>
+            </div>
+            
+            <div className="cm-actions">
+              <button className="cm-btn cm-btn-back" onClick={() => setChampionConfirmDialog(null)}>GO BACK</button>
+              <button className="cm-btn cm-btn-confirm" onClick={confirmChampion}>CONFIRM CHAMPION</button>
             </div>
           </div>
         </div>
