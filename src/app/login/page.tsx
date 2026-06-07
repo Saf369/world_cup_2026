@@ -70,7 +70,7 @@ export default function LoginPage() {
       if (error) throw error;
       // Supabase redirects to Google — loading stays true
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign-in failed. Try again.");
+      setError("Try again");
       setLoading(false);
     }
   };
