@@ -61,30 +61,40 @@ export default function VisualBracket() {
 
     // DB: check for existing predictionId or create one
     const initPrediction = async () => {
+      const createNewPrediction = async () => {
+        const storedMain = localStorage.getItem(LS_KEY);
+        const name = storedMain ? (JSON.parse(storedMain).userName || null) : null;
+        const res = await fetch('/api/bracket/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userName: name }),
+        });
+        if (res.ok) {
+          const { predictionId: newPid } = await res.json();
+          if (newPid) {
+            localStorage.setItem(PID_KEY, newPid);
+            setPredictionId(newPid);
+          }
+        }
+      };
+
       try {
         const storedPid = localStorage.getItem(PID_KEY);
         if (storedPid) {
-          setPredictionId(storedPid);
-          // Optionally hydrate from DB (merge on top of localStorage)
+          // Verify this predictionId still exists in the DB
           const res = await fetch(`/api/bracket/get?predictionId=${storedPid}`);
-          if (!res.ok) return; // localStorage already restored — no problem
-          // We trust localStorage as primary — DB hydration is secondary
-        } else {
-          // Create a new anonymous prediction row
-          const storedMain = localStorage.getItem(LS_KEY);
-          const name = storedMain ? (JSON.parse(storedMain).userName || null) : null;
-          const res = await fetch('/api/bracket/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userName: name }),
-          });
           if (res.ok) {
-            const { predictionId: newPid } = await res.json();
-            if (newPid) {
-              localStorage.setItem(PID_KEY, newPid);
-              setPredictionId(newPid);
-            }
+            // Valid — use it
+            setPredictionId(storedPid);
+          } else {
+            // Stale / deleted from DB — clear it and create a fresh one
+            console.warn('[mundial] Stale predictionId detected, creating new prediction...');
+            localStorage.removeItem(PID_KEY);
+            await createNewPrediction();
           }
+        } else {
+          // No stored ID — create a new anonymous prediction row
+          await createNewPrediction();
         }
       } catch { /* DB unavailable — localStorage is fine */ }
     };

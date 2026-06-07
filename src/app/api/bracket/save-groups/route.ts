@@ -8,11 +8,11 @@
 import { NextRequest } from 'next/server';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const headers = {
-  'apikey': SUPABASE_KEY,
-  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'apikey': SUPABASE_SERVICE_KEY,
+  'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
   'Content-Type': 'application/json',
 };
 
@@ -37,8 +37,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       return Response.json({ error: 'Missing predictionId or groups' }, { status: 400 });
     }
 
-    // Delete existing group picks for this prediction
-    await fetch(`${SUPABASE_URL}/rest/v1/group_picks?prediction_id=eq.${predictionId}`, {
+    // Delete existing group picks for this prediction, BUT ONLY for the groups being updated
+    const groupLetters = groups.map(g => g.groupLetter).join(',');
+    await fetch(`${SUPABASE_URL}/rest/v1/group_picks?prediction_id=eq.${predictionId}&group_letter=in.(${groupLetters})`, {
       method: 'DELETE',
       headers,
     });
@@ -46,13 +47,13 @@ export async function POST(req: NextRequest): Promise<Response> {
     // Insert fresh
     const rows = groups.map((g) => ({
       prediction_id: predictionId,
-      group_letter:  g.groupLetter,
-      first_team:    g.firstTeam,
-      first_flag:    g.firstFlag,
-      second_team:   g.secondTeam,
-      second_flag:   g.secondFlag,
-      third_team:    g.thirdTeam ?? null,
-      third_flag:    g.thirdFlag ?? null,
+      group_letter:  g.groupLetter || "N/A",
+      first_team:    g.firstTeam || "TBD",
+      first_flag:    g.firstFlag || "",
+      second_team:   g.secondTeam || "TBD",
+      second_flag:   g.secondFlag || "",
+      third_team:    g.thirdTeam || null,
+      third_flag:    g.thirdFlag || null,
     }));
 
     const res = await fetch(`${SUPABASE_URL}/rest/v1/group_picks`, {

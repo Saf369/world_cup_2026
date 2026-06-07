@@ -152,7 +152,7 @@ export function StageR32() {
 
       <button
         className="btn-gold btn-sheen"
-        onClick={confirmR32}
+        onClick={() => confirmR32(predictions)}
         disabled={!allPicked}
         style={{
           width: "100%", justifyContent: "center",
@@ -219,7 +219,7 @@ export function StageR16() {
 
       <button
         className="btn-gold btn-sheen"
-        onClick={confirmR16}
+        onClick={() => confirmR16(predictions)}
         disabled={!allPicked}
         style={{
           width: "100%", justifyContent: "center",

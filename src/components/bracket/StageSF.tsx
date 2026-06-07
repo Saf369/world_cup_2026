@@ -154,7 +154,7 @@ export default function StageSF() {
 
       <button
         className="btn-gold btn-sheen"
-        onClick={confirmSF}
+        onClick={() => confirmSF(predictions)}
         disabled={!allPicked}
         style={{
           width: "100%", justifyContent: "center",

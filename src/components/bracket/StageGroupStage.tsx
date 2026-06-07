@@ -271,7 +271,7 @@ export default function StageGroupStage() {
       <div style={{ marginTop: 24 }}>
         <button
           className="btn-gold btn-sheen"
-          onClick={() => confirmGroup(activeGroup)}
+          onClick={() => confirmGroup(activeGroup, predictions)}
           disabled={!allScoresFilled || groupState.confirmed}
           style={{
             width: "100%",

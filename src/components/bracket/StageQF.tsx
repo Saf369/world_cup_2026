@@ -168,7 +168,7 @@ export default function StageQF() {
 
       <button
         className="btn-gold btn-sheen"
-        onClick={confirmQF}
+        onClick={() => confirmQF(predictions)}
         disabled={!allPicked}
         style={{
           width: "100%", justifyContent: "center",

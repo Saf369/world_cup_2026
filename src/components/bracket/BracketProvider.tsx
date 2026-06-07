@@ -1,5 +1,55 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
+
+// ─── DB HELPERS ───────────────────────────────────────────────────────────────
+
+const PID_KEY = "mundial_prediction_id";
+
+/** Fire-and-forget POST — never throws, never blocks the UI. */
+async function dbPost(path: string, body: object): Promise<void> {
+  try {
+    const res = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`DB Save Error (${path}):`, errText);
+      // Self-heal: if the DB was reset but localStorage kept the old ID, clear it
+      if (errText.includes("foreign key constraint") && errText.includes("prediction_id")) {
+        localStorage.removeItem(PID_KEY);
+      }
+    }
+  } catch (e) {
+    console.error("Network error in dbPost:", e);
+  }
+}
+
+/** Create a new prediction row and persist its id to localStorage. */
+async function createPrediction(): Promise<string | null> {
+  try {
+    const res = await fetch("/api/bracket/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    if (!res.ok) return null;
+    const { predictionId } = await res.json();
+    if (predictionId) {
+      localStorage.setItem(PID_KEY, predictionId);
+      return predictionId;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+/** Get or create a predictionId — memoised across the session. */
+async function getOrCreatePredictionId(): Promise<string | null> {
+  const stored = localStorage.getItem(PID_KEY);
+  if (stored) return stored;
+  return createPrediction();
+}
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -208,17 +258,17 @@ interface BracketCtx {
   activeStage: number;
   setActiveStage: (s: number) => void;
   updateGroupMatch: (group: string, matchIdx: number, side: "home"|"away", val: number|"") => void;
-  confirmGroup: (group: string) => void;
+  confirmGroup: (group: string, currentPredictions: Predictions) => void;
   setR32Pick: (idx: number, winner: string) => void;
-  confirmR32: () => void;
+  confirmR32: (currentPredictions: Predictions) => void;
   setR16Pick: (idx: number, winner: string) => void;
-  confirmR16: () => void;
+  confirmR16: (currentPredictions: Predictions) => void;
   setQFPick: (idx: number, winner: string, confidence?: Confidence) => void;
-  confirmQF: () => void;
+  confirmQF: (currentPredictions: Predictions) => void;
   setSFPick: (idx: number, field: "winner"|"scorer"|"scoreH"|"scoreA", val: string|number|"") => void;
-  confirmSF: () => void;
+  confirmSF: (currentPredictions: Predictions) => void;
   setFinalField: (field: "winner"|"scorer"|"confidence"|"scoreH"|"scoreA", val: string|number|""|Confidence) => void;
-  confirmFinal: () => void;
+  confirmFinal: (currentPredictions: Predictions) => void;
   resetAll: () => void;
   groupStandings: Record<string, Standing[]>;
   r32Teams: [Standing, Standing][];
@@ -244,21 +294,33 @@ export function BracketProvider({ children }: { children: React.ReactNode }) {
   const [predictions, setPredictions] = useState<Predictions>(INITIAL);
   const [activeStage, setActiveStage] = useState(0);
   const [hydrated, setHydrated] = useState(false);
+  const predIdRef = useRef<string | null>(null);
 
-  // Restore from localStorage
+  // Restore from localStorage + ensure predictionId exists in DB
   useEffect(() => {
     try {
       const stored = localStorage.getItem(LS_KEY);
       if (stored) {
         const parsed = JSON.parse(stored) as Predictions;
         setPredictions(parsed);
-        // Restore active stage to last completed + 1
         const stageMap = ["groups","r32","r16","qf","sf","final"];
         const lastComplete = stageMap.reduce((acc, s, i) =>
           parsed.completedStages.includes(s) ? i : acc, -1);
         setActiveStage(Math.min(lastComplete + 1, 6));
       }
     } catch { /* ignore */ }
+    // Ensure we have a predictionId (creates one if not yet)
+    // Then claim it for the logged-in user (no-op if anonymous)
+    getOrCreatePredictionId().then(id => {
+      predIdRef.current = id;
+      if (!id) return;
+      // Try to link to authenticated user (server reads session cookie)
+      fetch("/api/bracket/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ predictionId: id }),
+      }).catch(() => { /* anonymous — ignore */ });
+    });
     setHydrated(true);
   }, []);
 
@@ -325,7 +387,7 @@ export function BracketProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  const confirmGroup = useCallback((group: string) => {
+  const confirmGroup = useCallback((group: string, currentPredictions: Predictions) => {
     setPredictions(p => {
       const newGroups = { ...p.groups, [group]: { ...p.groups[group], confirmed: true } };
       const allDone = ALL_GROUPS.every(g => newGroups[g.label].confirmed);
@@ -337,6 +399,26 @@ export function BracketProvider({ children }: { children: React.ReactNode }) {
           : p.completedStages,
       };
     });
+
+    // ── DB save (fire-and-forget, outside updater to avoid stale closure) ──
+    const grp = ALL_GROUPS.find(g => g.label === group)!;
+    const standings = computeStandings(grp, currentPredictions.groups[group].matches);
+    getOrCreatePredictionId().then(pid => {
+      if (!pid) return;
+      predIdRef.current = pid;
+      dbPost("/api/bracket/save-groups", {
+        predictionId: pid,
+        groups: [{
+          groupLetter: group,
+          firstTeam:  standings[0]?.team.name ?? grp.teams[0].name,
+          firstFlag:  standings[0]?.team.flag ?? grp.teams[0].flag,
+          secondTeam: standings[1]?.team.name ?? grp.teams[1].name,
+          secondFlag: standings[1]?.team.flag ?? grp.teams[1].flag,
+          thirdTeam:  standings[2]?.team.name ?? grp.teams[2].name,
+          thirdFlag:  standings[2]?.team.flag ?? grp.teams[2].flag,
+        }],
+      });
+    });
   }, []);
 
   const setR32Pick = useCallback((idx: number, winner: string) => {
@@ -346,12 +428,24 @@ export function BracketProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  const confirmR32 = useCallback(() => {
+  const confirmR32 = useCallback((currentPredictions: Predictions) => {
     setPredictions(p => ({
       ...p,
       completedStages: p.completedStages.includes("r32")
         ? p.completedStages : [...p.completedStages, "r32"],
     }));
+    // ── DB save ──
+    getOrCreatePredictionId().then(pid => {
+      if (!pid) return;
+      predIdRef.current = pid;
+      currentPredictions.r32.forEach((pick, idx) => {
+        if (!pick.winner) return;
+        dbPost("/api/bracket/save-pick", {
+          predictionId: pid, round: "r32", matchIndex: idx,
+          winner: pick.winner, bracketHalf: idx < 8 ? "left" : "right",
+        });
+      });
+    });
     setActiveStage(2);
   }, []);
 
@@ -362,12 +456,24 @@ export function BracketProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  const confirmR16 = useCallback(() => {
+  const confirmR16 = useCallback((currentPredictions: Predictions) => {
     setPredictions(p => ({
       ...p,
       completedStages: p.completedStages.includes("r16")
         ? p.completedStages : [...p.completedStages, "r16"],
     }));
+    // ── DB save ──
+    getOrCreatePredictionId().then(pid => {
+      if (!pid) return;
+      predIdRef.current = pid;
+      currentPredictions.r16.forEach((pick, idx) => {
+        if (!pick.winner) return;
+        dbPost("/api/bracket/save-pick", {
+          predictionId: pid, round: "r16", matchIndex: idx,
+          winner: pick.winner, bracketHalf: idx < 4 ? "left" : "right",
+        });
+      });
+    });
     setActiveStage(3);
   }, []);
 
@@ -380,12 +486,24 @@ export function BracketProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  const confirmQF = useCallback(() => {
+  const confirmQF = useCallback((currentPredictions: Predictions) => {
     setPredictions(p => ({
       ...p,
       completedStages: p.completedStages.includes("qf")
         ? p.completedStages : [...p.completedStages, "qf"],
     }));
+    // ── DB save ──
+    getOrCreatePredictionId().then(pid => {
+      if (!pid) return;
+      predIdRef.current = pid;
+      currentPredictions.qf.forEach((pick, idx) => {
+        if (!pick.winner) return;
+        dbPost("/api/bracket/save-pick", {
+          predictionId: pid, round: "qf", matchIndex: idx,
+          winner: pick.winner, bracketHalf: idx < 2 ? "left" : "right",
+        });
+      });
+    });
     setActiveStage(4);
   }, []);
 
@@ -402,12 +520,24 @@ export function BracketProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  const confirmSF = useCallback(() => {
+  const confirmSF = useCallback((currentPredictions: Predictions) => {
     setPredictions(p => ({
       ...p,
       completedStages: p.completedStages.includes("sf")
         ? p.completedStages : [...p.completedStages, "sf"],
     }));
+    // ── DB save ──
+    getOrCreatePredictionId().then(pid => {
+      if (!pid) return;
+      predIdRef.current = pid;
+      currentPredictions.sf.forEach((pick, idx) => {
+        if (!pick.winner) return;
+        dbPost("/api/bracket/save-pick", {
+          predictionId: pid, round: "sf", matchIndex: idx,
+          winner: pick.winner, bracketHalf: idx === 0 ? "left" : "right",
+        });
+      });
+    });
     setActiveStage(5);
   }, []);
 
@@ -422,20 +552,43 @@ export function BracketProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const confirmFinal = useCallback(() => {
+  const confirmFinal = useCallback((currentPredictions: Predictions) => {
     setPredictions(p => ({
       ...p,
       completedStages: p.completedStages.includes("final")
         ? [...p.completedStages, "champion"]
         : [...p.completedStages, "final", "champion"],
     }));
+    // ── DB save ──
+    const { winner, score } = currentPredictions.final;
+    if (winner) {
+      getOrCreatePredictionId().then(pid => {
+        if (!pid) return;
+        predIdRef.current = pid;
+        // Save final match pick
+        dbPost("/api/bracket/save-pick", {
+          predictionId: pid, round: "final", matchIndex: 0,
+          winner, bracketHalf: "center",
+        });
+        // Save champion + mark prediction complete
+        dbPost("/api/bracket/save-champion", {
+          predictionId: pid,
+          championTeam: winner,
+          championFlag: ALL_GROUPS.flatMap(g => g.teams).find(t => t.name === winner)?.flag ?? null,
+        });
+      });
+    }
     setActiveStage(6);
   }, []);
 
   const resetAll = useCallback(() => {
     setPredictions(INITIAL);
     setActiveStage(0);
-    try { localStorage.removeItem(LS_KEY); } catch { /* ignore */ }
+    predIdRef.current = null;
+    try {
+      localStorage.removeItem(LS_KEY);
+      localStorage.removeItem(PID_KEY);
+    } catch { /* ignore */ }
   }, []);
 
   const value: BracketCtx = {

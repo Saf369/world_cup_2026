@@ -9,11 +9,11 @@
 import { NextRequest } from 'next/server';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const headers = {
-  'apikey': SUPABASE_KEY,
-  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'apikey': SUPABASE_SERVICE_KEY,
+  'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
   'Content-Type': 'application/json',
 };
 
@@ -45,13 +45,13 @@ export async function POST(req: NextRequest): Promise<Response> {
         prediction_id: predictionId,
         round,
         match_index:   matchIndex,
-        home_team:     homeTeam ?? null,
-        home_flag:     homeFlag ?? null,
-        away_team:     awayTeam ?? null,
-        away_flag:     awayFlag ?? null,
-        winner:        winner ?? null,
-        winner_flag:   winnerFlag ?? null,
-        bracket_half:  bracketHalf ?? null,
+        home_team:     homeTeam || "TBD",
+        home_flag:     homeFlag || "",
+        away_team:     awayTeam || "TBD",
+        away_flag:     awayFlag || "",
+        winner:        winner || null,
+        winner_flag:   winnerFlag || null,
+        bracket_half:  bracketHalf || null,
       }),
     });
 

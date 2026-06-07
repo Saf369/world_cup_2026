@@ -8,11 +8,11 @@
 import { NextRequest } from 'next/server';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const headers = {
-  'apikey': SUPABASE_KEY,
-  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'apikey': SUPABASE_SERVICE_KEY,
+  'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
   'Content-Type': 'application/json',
 };
 
@@ -45,10 +45,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     const rows = ranking.map((r) => ({
       prediction_id: predictionId,
       rank:          r.rank,
-      team:          r.team,
-      flag:          r.flag,
-      group_letter:  r.groupLetter,
-      advances:      r.advances,
+      team:          r.team || "TBD",
+      flag:          r.flag || "",
+      group_letter:  r.groupLetter || "N/A",
+      advances:      Boolean(r.advances),
     }));
 
     const res = await fetch(`${SUPABASE_URL}/rest/v1/best8_ranking`, {
@@ -59,6 +59,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     if (!res.ok) {
       const err = await res.text();
+      console.error('[save-best8] DB Error:', err);
       return Response.json({ error: err }, { status: 500 });
     }
 

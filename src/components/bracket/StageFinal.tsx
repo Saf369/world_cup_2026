@@ -245,7 +245,7 @@ export default function StageFinal() {
       {/* Confirm */}
       <button
         className="btn-gold btn-sheen"
-        onClick={confirmFinal}
+        onClick={() => confirmFinal(predictions)}
         disabled={!canConfirm}
         style={{
           width: "100%", justifyContent: "center",
