@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import "./visual-bracket.css";
 
@@ -29,6 +29,10 @@ export default function VisualBracket() {
   const [customTeams, setCustomTeams] = useState<Record<string, string>>({});
   const [championConfirmDialog, setChampionConfirmDialog] = useState<Team | null>(null);
   const [confirmedChampion, setConfirmedChampion] = useState<Team | null>(null);
+  // Ref so the thirdRankings effect can read the current lock state
+  // without adding it to the deps array (React requires stable array size)
+  const confirmedChampionRef = useRef<Team | null>(null);
+  confirmedChampionRef.current = confirmedChampion;
   const [userName, setUserName] = useState<string>("");
   const [predictionDate, setPredictionDate] = useState<string>("");
   const [showChampionCard, setShowChampionCard] = useState<boolean>(false);
@@ -88,8 +92,19 @@ export default function VisualBracket() {
             setPredictionId(storedPid);
           } else {
             // Stale / deleted from DB — clear it and create a fresh one
-            console.warn('[mundial] Stale predictionId detected, creating new prediction...');
+            console.warn('[mundial] Stale predictionId detected, fully resetting local state...');
             localStorage.removeItem(PID_KEY);
+            localStorage.removeItem(LS_KEY);
+            
+            // Reset React state to empty so the UI instantly clears
+            setGroupSelections(INITIAL_GROUPS);
+            setRounds(INITIAL_ROUNDS);
+            setCustomTeams({});
+            setThirdRankings([]);
+            setThirdRankingsConfirmed(false);
+            setConfirmedChampion(null);
+            setUserName("");
+            
             await createNewPrediction();
           }
         } else {
@@ -134,11 +149,20 @@ export default function VisualBracket() {
         return groupSelections[g.id].selected[2];
       });
       setThirdRankings(thirds);
-    } else if (!groupsAllConfirmed) {
+    } else if (!groupsAllConfirmed && !confirmedChampionRef.current) {
+      // Only clear when not locked — a confirmed champion must keep its Best 8 data
       setThirdRankings([]);
       setThirdRankingsConfirmed(false);
     }
-  }, [groupsAllConfirmed, groupSelections, thirdRankings.length]);
+
+    // Auto-heal: if the champion is locked, the Best 8 MUST be confirmed.
+    // This fixes corrupted localStorage states where the bracket was locked but best 8 showed placeholders.
+    if (confirmedChampionRef.current && thirdRankings.length === 12 && !thirdRankingsConfirmed) {
+      setThirdRankingsConfirmed(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupsAllConfirmed, groupSelections, thirdRankings.length, thirdRankingsConfirmed]);
+  // ^ confirmedChampion intentionally read via ref to keep deps array size stable
 
   const generatedR32Data = useMemo(() => {
     if (!groupsAllConfirmed) {
@@ -1029,7 +1053,11 @@ export default function VisualBracket() {
         <>
           {/* 2. INSTRUCTION STRIP */}
           <div className="instruction-strip">
-            {!thirdRankingsConfirmed ? (
+            {confirmedChampion ? (
+              <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                🏆 Your Predicted Champion: <span style={{ fontSize: '16px' }}>{confirmedChampion.f}</span> {confirmedChampion.n}
+              </span>
+            ) : !thirdRankingsConfirmed ? (
               <span>Complete the <a style={{color:'var(--gold)', cursor:'pointer'}} onClick={() => setActiveTab('best8')}>Best 8</a> ranking to auto-fill teams into the bracket.</span>
             ) : (
               <span>Click a team to pick the <span className="highlight">WINNER</span> — bracket auto-advances round by round. <span className="from-gs-badge">From Group Stage ✓</span></span>
