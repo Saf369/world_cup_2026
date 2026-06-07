@@ -10,7 +10,9 @@ export const metadata: Metadata = {
     title: "XI — World Cup 2026 Predictor",
     description: "Elite World Cup prediction platform.",
     type: "website",
+    url: "https://saf.net.in/",
   },
+  metadataBase: new URL("https://saf.net.in/"),
 };
 
 export default function RootLayout({
