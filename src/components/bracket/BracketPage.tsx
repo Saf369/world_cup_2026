@@ -72,7 +72,7 @@ export default function BracketPage() {
                 textDecoration: "none",
               }}
             >
-              MUNDIAL
+              XI
             </Link>
             <span style={{ color: "#252525" }}>›</span>
             <span className="label-xs" style={{ color: "#5A5248", fontSize: 9 }}>MY BRACKET</span>

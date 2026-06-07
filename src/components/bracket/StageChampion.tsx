@@ -8,7 +8,7 @@ function getFlag(name: string) {
 }
 
 function buildShareText(p: ReturnType<typeof useBracket>["predictions"]) {
-  const lines = ["🏆 MY MUNDIAL 2026 BRACKET", "================================"];
+  const lines = ["🏆 MY XI 2026 BRACKET", "================================"];
   ALL_GROUPS.forEach(g => {
     const gs = p.groups[g.label];
     if (gs.confirmed) lines.push(`Group ${g.label}: confirmed`);
@@ -19,7 +19,7 @@ function buildShareText(p: ReturnType<typeof useBracket>["predictions"]) {
   p.sf.forEach((m,  i) => m.winner && lines.push(`SF ${i+1}: ${m.winner} ${m.score[0]}–${m.score[1]}`));
   if (p.final.winner) lines.push(`🏆 CHAMPION: ${p.final.winner} (${p.final.score[0]}–${p.final.score[1]})`);
   lines.push("================================");
-  lines.push("Made with MUNDIAL — mundial2026.app");
+  lines.push("Made with XI — xi2026.app");
   return lines.join("\n");
 }
 

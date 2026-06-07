@@ -133,7 +133,7 @@ export default function OnboardingPage() {
           <div className="ob-success">
             <div className="ob-success-icon">🏆</div>
             <h2 className="ob-success-title">You&rsquo;re in!</h2>
-            <p className="ob-success-sub">Redirecting to MUNDIAL…</p>
+            <p className="ob-success-sub">Redirecting to XI…</p>
             <div className="ob-success-bar">
               <div className="ob-success-fill" />
             </div>
@@ -142,7 +142,7 @@ export default function OnboardingPage() {
           /* ── Form ── */
           <>
             <header className="ob-header">
-              <p className="ob-eyebrow">MUNDIAL 2026</p>
+              <p className="ob-eyebrow">XI 2026</p>
               <h1 className="ob-title">Complete Your Profile</h1>
               <p className="ob-desc">
                 Just a few details so we can personalise your experience and

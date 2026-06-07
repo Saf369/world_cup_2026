@@ -18,25 +18,25 @@ const ROUNDS: Round[] = [
     label: "Quarter Finals",
     date: "Jul 4–7, 2026",
     matches: [
-      [{ name: "FRANCE",    flag: "🇫🇷", isWinner: true }, { name: "PORTUGAL",    flag: "🇵🇹" }],
-      [{ name: "ARGENTINA", flag: "🇦🇷", isWinner: true }, { name: "GERMANY",     flag: "🇩🇪" }],
-      [{ name: "SPAIN",     flag: "🇪🇸", isWinner: true }, { name: "NETHERLANDS", flag: "🇳🇱" }],
-      [{ name: "BRAZIL",    flag: "🇧🇷", isWinner: true }, { name: "ENGLAND",     flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" }],
+      [{ name: "TBD", flag: "" }, { name: "TBD", flag: "" }],
+      [{ name: "TBD", flag: "" }, { name: "TBD", flag: "" }],
+      [{ name: "TBD", flag: "" }, { name: "TBD", flag: "" }],
+      [{ name: "TBD", flag: "" }, { name: "TBD", flag: "" }],
     ],
   },
   {
     label: "Semi Finals",
     date: "Jul 11–12, 2026",
     matches: [
-      [{ name: "FRANCE",    flag: "🇫🇷", isWinner: true }, { name: "ARGENTINA", flag: "🇦🇷" }],
-      [{ name: "BRAZIL",    flag: "🇧🇷", isWinner: true }, { name: "SPAIN",     flag: "🇪🇸" }],
+      [{ name: "TBD", flag: "" }, { name: "TBD", flag: "" }],
+      [{ name: "TBD", flag: "" }, { name: "TBD", flag: "" }],
     ],
   },
   {
     label: "Final",
     date: "Jul 19, 2026 · MetLife",
     matches: [
-      [{ name: "FRANCE", flag: "🇫🇷", isWinner: true }, { name: "BRAZIL", flag: "🇧🇷" }],
+      [{ name: "TBD", flag: "" }, { name: "TBD", flag: "" }],
     ],
   },
 ];

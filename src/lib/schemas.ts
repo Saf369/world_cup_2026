@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Zod Validation Schemas
+ * XI — Zod Validation Schemas
  * All API request bodies defined in one place.
  */
 

@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Database Service Layer
+ * XI — Database Service Layer
  * All DB operations, grouped by domain. Uses server client by default.
  * Import specific helpers in Route Handlers and Server Components.
  *

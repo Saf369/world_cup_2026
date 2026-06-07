@@ -14,16 +14,16 @@ interface Scorer {
 
 // Pre-tournament top scorer predictions based on form, squad role & odds
 const SCORERS: Scorer[] = [
-  { rank: 1,  name: "Kylian Mbappé",     country: "France",    flag: "🇫🇷", goals: 0, assists: 0, mins: 0, ratio: 1.12, odds: "4.50" },
-  { rank: 2,  name: "Erling Haaland",    country: "Norway",    flag: "🇳🇴", goals: 0, assists: 0, mins: 0, ratio: 1.08, odds: "5.00" },
-  { rank: 3,  name: "Vinícius Jr.",      country: "Brazil",    flag: "🇧🇷", goals: 0, assists: 0, mins: 0, ratio: 0.96, odds: "6.00" },
-  { rank: 4,  name: "Harry Kane",        country: "England",   flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", goals: 0, assists: 0, mins: 0, ratio: 0.92, odds: "7.00" },
-  { rank: 5,  name: "Julián Álvarez",    country: "Argentina", flag: "🇦🇷", goals: 0, assists: 0, mins: 0, ratio: 0.88, odds: "8.00" },
-  { rank: 6,  name: "Lamine Yamal",      country: "Spain",     flag: "🇪🇸", goals: 0, assists: 0, mins: 0, ratio: 0.82, odds: "9.00" },
-  { rank: 7,  name: "Jude Bellingham",   country: "England",   flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", goals: 0, assists: 0, mins: 0, ratio: 0.78, odds: "10.00" },
-  { rank: 8,  name: "Raphinha",          country: "Brazil",    flag: "🇧🇷", goals: 0, assists: 0, mins: 0, ratio: 0.74, odds: "12.00" },
-  { rank: 9,  name: "Bukayo Saka",       country: "England",   flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", goals: 0, assists: 0, mins: 0, ratio: 0.70, odds: "14.00" },
-  { rank: 10, name: "Rodrygo",           country: "Brazil",    flag: "🇧🇷", goals: 0, assists: 0, mins: 0, ratio: 0.68, odds: "16.00" },
+  { rank: 1,  name: "TBD", country: "TBD", flag: "", goals: 0, assists: 0, mins: 0, ratio: 0.00, odds: "TBD" },
+  { rank: 2,  name: "TBD", country: "TBD", flag: "", goals: 0, assists: 0, mins: 0, ratio: 0.00, odds: "TBD" },
+  { rank: 3,  name: "TBD", country: "TBD", flag: "", goals: 0, assists: 0, mins: 0, ratio: 0.00, odds: "TBD" },
+  { rank: 4,  name: "TBD", country: "TBD", flag: "", goals: 0, assists: 0, mins: 0, ratio: 0.00, odds: "TBD" },
+  { rank: 5,  name: "TBD", country: "TBD", flag: "", goals: 0, assists: 0, mins: 0, ratio: 0.00, odds: "TBD" },
+  { rank: 6,  name: "TBD", country: "TBD", flag: "", goals: 0, assists: 0, mins: 0, ratio: 0.00, odds: "TBD" },
+  { rank: 7,  name: "TBD", country: "TBD", flag: "", goals: 0, assists: 0, mins: 0, ratio: 0.00, odds: "TBD" },
+  { rank: 8,  name: "TBD", country: "TBD", flag: "", goals: 0, assists: 0, mins: 0, ratio: 0.00, odds: "TBD" },
+  { rank: 9,  name: "TBD", country: "TBD", flag: "", goals: 0, assists: 0, mins: 0, ratio: 0.00, odds: "TBD" },
+  { rank: 10, name: "TBD", country: "TBD", flag: "", goals: 0, assists: 0, mins: 0, ratio: 0.00, odds: "TBD" },
 ];
 
 function ScorerRow({ scorer }: { scorer: Scorer }) {

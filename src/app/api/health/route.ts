@@ -11,7 +11,7 @@ export async function GET(): Promise<Response> {
     data: {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      service: 'MUNDIAL API',
+      service: 'XI API',
     },
   });
 }

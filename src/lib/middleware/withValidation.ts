@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Zod Validation Helper for Route Handlers
+ * XI — Zod Validation Helper for Route Handlers
  * Usage:
  *   const result = validate(groupPredictionSchema, await req.json());
  *   if (!result.ok) return result.error;   // returns a 400 Response

@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Database Type Definitions
+ * XI — Database Type Definitions
  * Auto-generated TypeScript types for all 13 tables in the World Cup 2026 schema.
  * Follows Supabase naming conventions: Database['public']['Tables'][TableName]['Row']
  */

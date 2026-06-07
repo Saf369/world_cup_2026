@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 
 // ─── DB HELPERS ───────────────────────────────────────────────────────────────
 
-const PID_KEY = "mundial_prediction_id";
+const PID_KEY = "xi_prediction_id";
 
 /** Fire-and-forget POST — never throws, never blocks the UI. */
 async function dbPost(path: string, body: object): Promise<void> {
@@ -288,7 +288,7 @@ export function useBracket() {
 
 // ─── PROVIDER ────────────────────────────────────────────────────────────────
 
-const LS_KEY = "mundial_bracket_v2";
+const LS_KEY = "xi_bracket_v2";
 
 export function BracketProvider({ children }: { children: React.ReactNode }) {
   const [predictions, setPredictions] = useState<Predictions>(INITIAL);

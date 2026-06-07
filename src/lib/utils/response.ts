@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Standardized API Response Helpers
+ * XI — Standardized API Response Helpers
  * Use Response.json() (Web API) — compatible with Next.js Route Handlers.
  */
 

@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Winston Logger
+ * XI — Winston Logger
  * Server-only — do NOT import in 'use client' components.
  * Logs to console in dev, to file in production.
  */

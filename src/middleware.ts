@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Next.js Middleware
+ * XI — Next.js Middleware
  * Refreshes the Supabase session on every request so it doesn't expire mid-session.
  * Also protects /dashboard and /bracket routes from unauthenticated access.
  */

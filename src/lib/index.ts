@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — lib barrel export
+ * XI — lib barrel export
  * Import everything from '@/lib' for convenience.
  */
 

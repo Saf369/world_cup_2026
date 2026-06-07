@@ -111,7 +111,7 @@ export default function Nav() {
           style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "baseline", gap: 4 }}
         >
           <span className="font-display" style={{ fontSize: 28, letterSpacing: "0.1em", color: "#C9A84C", lineHeight: 1 }}>
-            MUNDIAL
+            XI
           </span>
           <span className="label-xs" style={{ color: "#5A5248", marginLeft: 8 }}>2026</span>
         </button>

@@ -6,8 +6,8 @@ import "./visual-bracket.css";
 
 import { Team, GroupData, GroupSelection } from './types';
 import { GROUPS_DATA, EMPTY_TEAM, TBD_3, INITIAL_ROUNDS, LS_KEY } from './constants';
-import PdfCapture from './PdfCapture';
 import { ChampionConfirmDialog, ChampionCard } from './ChampionModals';
+import { createClient } from '@/lib/supabase/client';
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 
@@ -43,10 +43,23 @@ export default function VisualBracket() {
   const [predictionId, setPredictionId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [championSaving, setChampionSaving] = useState(false);
-  const PID_KEY = 'mundial2026_pid';
+  const PID_KEY = 'xi2026_pid';
 
   // ─── TRIGGER 1: Page load — restore localStorage then create / hydrate DB ─
   useEffect(() => {
+    const fetchUser = async () => {
+        try {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase.from('users').select('display_name').eq('email', user.email!).single();
+                if (profile?.display_name) {
+                    setUserName(profile.display_name);
+                }
+            }
+        } catch { /* ignore */ }
+    };
+
     try {
       const stored = localStorage.getItem(LS_KEY);
       if (stored) {
@@ -62,6 +75,7 @@ export default function VisualBracket() {
       }
     } catch { /* ignore */ }
     setHydrated(true);
+    fetchUser();
 
     // DB: check for existing predictionId or create one
     const initPrediction = async () => {
@@ -92,12 +106,16 @@ export default function VisualBracket() {
             setPredictionId(storedPid);
           } else {
             // Stale / deleted from DB — clear it and create a fresh one
-            console.warn('[mundial] Stale predictionId detected, fully resetting local state...');
+            console.warn('[xi] Stale predictionId detected, fully resetting local state...');
             localStorage.removeItem(PID_KEY);
             localStorage.removeItem(LS_KEY);
             
             // Reset React state to empty so the UI instantly clears
-            setGroupSelections(INITIAL_GROUPS);
+            setGroupSelections(() => {
+              const init: Record<string, GroupSelection> = {};
+              GROUPS_DATA.forEach(g => { init[g.id] = { selected: [], confirmed: false }; });
+              return init;
+            });
             setRounds(INITIAL_ROUNDS);
             setCustomTeams({});
             setThirdRankings([]);
@@ -124,14 +142,7 @@ export default function VisualBracket() {
 
   // ─── LOGIC ─────────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (!document.getElementById("jspdf-script")) {
-      const script = document.createElement("script");
-      script.id = "jspdf-script";
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-      document.body.appendChild(script);
-    }
-  }, []);
+
 
   const showToast = useCallback((msg: string) => {
     setToast({ msg, visible: true });
@@ -434,159 +445,6 @@ export default function VisualBracket() {
     showToast(`🏆 ${team.n} — YOUR 2026 CHAMPION!`);
   };
 
-  const generatePDF = async () => {
-    if (typeof window === 'undefined') return;
-    
-    let html2canvasObj = (window as any).html2canvas;
-    if (!html2canvasObj) {
-        showToast("PDF generator loading, please wait...");
-        try {
-            await new Promise((resolve, reject) => {
-                const script = document.createElement("script");
-                script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-                script.onload = () => resolve((window as any).html2canvas);
-                script.onerror = () => reject();
-                document.head.appendChild(script);
-            });
-            html2canvasObj = (window as any).html2canvas;
-        } catch (e) {
-            showToast("Failed to load PDF generator.");
-            return;
-        }
-    }
-
-    if (!(window as any).jspdf) return;
-    const { jsPDF } = (window as any).jspdf;
-    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    
-    const setBg = () => doc.setFillColor(6, 8, 16);
-    const setGoldText = () => doc.setTextColor(201, 168, 76);
-    const setWhiteText = () => doc.setTextColor(240, 232, 208);
-    const setMutedGoldText = () => doc.setTextColor(154, 136, 96);
-    const setDarkGoldText = () => doc.setTextColor(74, 68, 48);
-    
-    // --- PAGE 1: COVER ---
-    setBg(); doc.rect(0, 0, 297, 210, 'F');
-    doc.setFont("helvetica", "bold"); doc.setFontSize(28); setGoldText();
-    doc.text("MUNDIAL 2026", 148.5, 40, { align: "center" });
-    doc.setFont("helvetica", "normal"); doc.setFontSize(11); setMutedGoldText();
-    doc.text("FIFA WORLD CUP PREDICTION", 148.5, 50, { align: "center" });
-    
-    doc.setDrawColor(122, 98, 48); doc.setLineWidth(0.35);
-    doc.line(12, 65, 285, 65);
-    
-    try {
-        const flagEl = document.getElementById('pdf-champion-flag');
-        if (flagEl && html2canvasObj && confirmedChampion?.f) {
-            const canvas = await html2canvasObj(flagEl, { backgroundColor: null, scale: 2, logging: false });
-            const imgData = canvas.toDataURL('image/png');
-            doc.addImage(imgData, 'PNG', 133.5, 75, 30, 30);
-        } else {
-            doc.setFillColor(201, 168, 76);
-            doc.circle(148.5, 85, 5, 'F'); doc.circle(143.5, 95, 5, 'F'); doc.circle(153.5, 95, 5, 'F');
-        }
-    } catch (e) {
-        doc.setFillColor(201, 168, 76);
-        doc.circle(148.5, 85, 5, 'F'); doc.circle(143.5, 95, 5, 'F'); doc.circle(153.5, 95, 5, 'F');
-    }
-    
-    doc.setFont("helvetica", "bold"); doc.setFontSize(36); setGoldText();
-    doc.text(confirmedChampion?.n || "Unknown", 148.5, 120, { align: "center" });
-    
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10); setMutedGoldText();
-    doc.text(`Predicted by: ${userName || 'My Prediction'}`, 148.5, 140, { align: "center" });
-    doc.text(`Date: ${predictionDate}`, 148.5, 150, { align: "center" });
-    doc.setFontSize(9); setDarkGoldText();
-    doc.text("FIFA World Cup 2026 · USA · Canada · Mexico", 148.5, 170, { align: "center" });
-    
-    doc.setDrawColor(122, 98, 48); doc.line(12, 195, 285, 195);
-    doc.setFontSize(7);
-    doc.text("Generated by MUNDIAL Predictor", 148.5, 200, { align: "center" });
-
-    // --- PAGE 2: FULL BRACKET CAPTURE ---
-    try {
-        const captureEl = document.getElementById('pdf-bracket-capture');
-        if (captureEl && html2canvasObj) {
-            const canvas = await html2canvasObj(captureEl, { 
-                scale: 2, 
-                backgroundColor: '#060810',
-                logging: false
-            });
-            const imgData = canvas.toDataURL('image/png');
-            doc.addPage("a4", "landscape");
-            doc.addImage(imgData, 'PNG', 0, 0, 297, 210);
-        }
-    } catch (err) {
-        console.error("html2canvas failed", err);
-    }
-
-    // --- PAGE 4: GROUP STAGE SUMMARY ---
-    doc.addPage("a4", "portrait");
-    setBg(); doc.rect(0, 0, 210, 297, 'F');
-    doc.setFont("helvetica", "bold"); doc.setFontSize(16); setGoldText();
-    doc.text("GROUP STAGE RESULTS", 105, 20, { align: "center" });
-    doc.setFont("helvetica", "normal"); doc.setFontSize(9); setMutedGoldText();
-    doc.text("12 Groups · 48 Teams · 32 Qualified", 105, 26, { align: "center" });
-    
-    let gy = 40;
-    GROUPS_DATA.forEach((g, i) => {
-        const col = i % 3; const row = Math.floor(i / 3);
-        const gx = 20 + col * 60; const currentY = gy + row * 55;
-        
-        doc.setFont("helvetica", "bold"); doc.setFontSize(14); setGoldText();
-        doc.text(`Group ${g.id}`, gx, currentY);
-        doc.setDrawColor(201, 168, 76); doc.setLineWidth(0.2);
-        doc.line(gx, currentY + 2, gx + 45, currentY + 2);
-        
-        const sel = groupSelections[g.id];
-        const t1 = sel.selected[0]; const t2 = sel.selected[1]; const t3 = sel.selected[2];
-        const unselected = g.teams.filter(t => !sel.selected.includes(t.n))[0]?.n;
-        const sorted = [t1, t2, t3, unselected];
-        
-        sorted.forEach((tName, idx) => {
-            const ty = currentY + 12 + idx * 9;
-            const isQ = idx < 2; const is3rdQ = idx === 2 && thirdRankings.slice(0, 8).includes(tName);
-            
-            if (isQ || is3rdQ) {
-                doc.setFillColor(201, 168, 76); doc.rect(gx, ty - 2.5, 2, 2, 'F');
-            }
-            doc.setFontSize(8); 
-            doc.setTextColor(isQ || is3rdQ ? 240 : 74, isQ || is3rdQ ? 232 : 68, isQ || is3rdQ ? 208 : 48);
-            doc.text(`${idx + 1}`, gx + 4, ty);
-            
-            doc.setFillColor(30, 34, 53); doc.rect(gx + 8, ty - 3.5, 6, 4, 'F');
-            doc.setFont("helvetica", "bold"); doc.setFontSize(5); setGoldText();
-            doc.text(tName ? tName.substring(0,3).toUpperCase() : "", gx + 11, ty - 0.5, {align: 'center'});
-            
-            doc.setFontSize(8);
-            doc.setTextColor(isQ || is3rdQ ? 240 : 74, isQ || is3rdQ ? 232 : 68, isQ || is3rdQ ? 208 : 48);
-            let trunc = tName || "TBD"; if (trunc.length > 12) trunc = trunc.substring(0, 12) + ".";
-            doc.text(trunc, gx + 16, ty);
-            
-            if (is3rdQ) { doc.setFontSize(6); setGoldText(); doc.text("3RD", gx + 40, ty); }
-        });
-    });
-
-    doc.setFont("helvetica", "bold"); doc.setFontSize(10); setGoldText();
-    doc.text("BEST 8 ADVANCING 3RD PLACE TEAMS", 105, 262, { align: "center" });
-    doc.setDrawColor(201, 168, 76); doc.setLineWidth(0.2);
-    doc.line(75, 264, 135, 264);
-    
-    doc.setFont("helvetica", "normal"); doc.setFontSize(8); setWhiteText();
-    const row1 = thirdRankings.slice(0, 4).join("   ·   ");
-    const row2 = thirdRankings.slice(4, 8).join("   ·   ");
-    doc.text(row1, 105, 270, { align: "center" });
-    doc.text(row2, 105, 276, { align: "center" });
-
-    doc.setDrawColor(122, 98, 48); doc.line(12, 285, 198, 285);
-    doc.setFontSize(7); setDarkGoldText();
-    doc.text("Generated by MUNDIAL Predictor", 105, 290, { align: "center" });
-
-    const abbr = confirmedChampion?.n ? confirmedChampion.n.substring(0,3).toUpperCase() : "TBD";
-    const dateStrSafe = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '');
-    doc.save(`MUNDIAL-2026-${abbr}-${dateStrSafe}.pdf`);
-  };
-
   const resetBracket = () => {
     setRounds(INITIAL_ROUNDS);
     setGroupSelections(() => {
@@ -783,7 +641,7 @@ export default function VisualBracket() {
       <div className="nav-bar">
         <div className="nav-left">
           <Link href="/" className="logo-link">
-            MUNDIAL
+            XI
           </Link>
           <span className="sub-label">World Cup 2026 Predictor</span>
         </div>
@@ -1105,7 +963,7 @@ export default function VisualBracket() {
         <div className="modal-overlay" onClick={() => setChampionConfirmDialog(null)}>
           <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
             <div className="cm-header">
-              <div className="cm-sup">MUNDIAL 2026</div>
+              <div className="cm-sup">XI 2026</div>
               <div className="cm-sub">FINAL PREDICTION</div>
               <div className="cm-divider"></div>
             </div>
@@ -1175,125 +1033,10 @@ export default function VisualBracket() {
                <div>FIFA World Cup 2026 · USA · Canada · Mexico</div>
              </div>
 
-             <div className="champ-share-section">
-               <div className="share-label">SHARE YOUR PREDICTION</div>
-               <div className="share-buttons">
-                 <button onClick={generatePDF}>📄 Download PDF</button>
-                 <button onClick={() => window.open(`whatsapp://send?text=My FIFA World Cup 2026 Champion is ${confirmedChampion.n}! Predict yours at MUNDIAL.`)}>💬 WhatsApp</button>
-                 <button onClick={() => window.open(`https://twitter.com/intent/tweet?text=My FIFA World Cup 2026 Champion is ${confirmedChampion.n}! Predict yours at MUNDIAL.`)}>𝕏 Twitter</button>
-                 <button onClick={() => { navigator.clipboard.writeText(`My FIFA World Cup 2026 Champion is ${confirmedChampion.n}! Predict yours at MUNDIAL.`); showToast("Link copied!"); }}>🔗 Copy Link</button>
-               </div>
-             </div>
           </div>
         </div>
       )}
 
-      {/* HIDDEN FLAG CAPTURE FOR PDF COVER */}
-      <div id="pdf-champion-flag" style={{
-         position: 'fixed', left: -9999, top: -9999, fontSize: '64px',
-         width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center'
-      }}>
-         {confirmedChampion?.f}
-      </div>
-
-      {/* HIDDEN PDF CAPTURE DIV */}
-      <div id="pdf-bracket-capture" style={{
-         position: 'fixed', left: -9999, top: -9999, width: 1782, height: 1260,
-         backgroundColor: '#060810', color: '#C9A84C', padding: '50px 60px',
-         boxSizing: 'border-box', display: 'flex', flexDirection: 'column'
-      }}>
-         <div style={{textAlign: 'center', marginBottom: 20}}>
-            <div style={{fontFamily: 'Bebas Neue', fontSize: 20, color: '#C9A84C'}}>MUNDIAL 2026 — FULL BRACKET PREDICTION</div>
-            <div style={{fontFamily: 'Montserrat', fontSize: 9, color: '#4A4430'}}>FIFA World Cup 2026 · USA · Canada · Mexico</div>
-            <div style={{height: 1, backgroundColor: '#7A6230', marginTop: 10, opacity: 0.5}}></div>
-         </div>
-         
-         <div style={{display: 'flex', flex: 1, justifyContent: 'space-between', alignItems: 'stretch'}}>
-            {/* HALF 1 */}
-            <div style={{display: 'flex', flex: 1, justifyContent: 'space-between'}}>
-               {[8, 4, 2, 1].map((numMatches, roundIdx) => (
-                  <React.Fragment key={`h1-${roundIdx}`}>
-                  <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-around', width: 110, position: 'relative'}}>
-                     <div style={{position: 'absolute', top: -20, width: '100%', textAlign: 'center', fontFamily: 'Montserrat', fontSize: 7, color: '#4A4430', letterSpacing: 2, textTransform: 'uppercase'}}>
-                        {roundIdx === 0 ? "ROUND OF 32" : roundIdx === 1 ? "ROUND OF 16" : roundIdx === 2 ? "QUARTER-FINAL" : "SEMI-FINAL"}
-                     </div>
-                     {Array.from({length: numMatches}).map((_, matchInRound) => {
-                        const globalMatchIdx = matchInRound;
-                        const teamA = getTeamAt(roundIdx, globalMatchIdx, 0);
-                        const teamB = getTeamAt(roundIdx, globalMatchIdx, 1);
-                        const winner = getWinnerAt(roundIdx, globalMatchIdx);
-                        return <React.Fragment key={matchInRound}>{renderCaptureMatch(teamA, teamB, winner)}</React.Fragment>;
-                     })}
-                  </div>
-                  {/* Connectors Half 1 */}
-                  {roundIdx < 3 && (
-                      <div style={{display: 'flex', flexDirection: 'column', width: 20}}>
-                         {Array.from({length: numMatches / 2}).map((_, i) => (
-                            <div key={i} style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                                <div style={{ width: '100%', height: '50%', borderTop: '1px solid #7A6230', borderRight: '1px solid #7A6230', borderBottom: '1px solid #7A6230' }}></div>
-                            </div>
-                         ))}
-                      </div>
-                  )}
-                  </React.Fragment>
-               ))}
-            </div>
-
-            {/* FINAL BOX */}
-            <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: 120, margin: '0 20px', position: 'relative'}}>
-                {/* connector from sf to final */}
-                <div style={{position: 'absolute', left: -20, width: 20, height: 1, backgroundColor: '#7A6230'}}></div>
-                <div style={{position: 'absolute', right: -20, width: 20, height: 1, backgroundColor: '#7A6230'}}></div>
-                
-                <div style={{fontSize: 24, marginBottom: 10}}>🏆</div>
-                <div style={{backgroundColor: '#0C0E18', border: '2px solid #C9A84C', borderTop: '4px solid #C9A84C', width: '100%', padding: 10, textAlign: 'center'}}>
-                   <div style={{fontFamily: 'Bebas Neue', fontSize: 14, letterSpacing: 3, marginBottom: 10, color: '#C9A84C'}}>FINAL</div>
-                   {renderCaptureMatch(getTeamAt(4, 0, 0), getTeamAt(4, 0, 1), getWinnerAt(4, 0))}
-                   {getWinnerAt(4, 0)?.n && getWinnerAt(4, 0)?.n !== "TBD" && (
-                       <div style={{marginTop: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8}}>
-                           <span style={{fontSize: 20}}>{getWinnerAt(4, 0)?.f}</span>
-                           <span style={{fontFamily: 'Bebas Neue', fontSize: 16, color: '#C9A84C'}}>* {getWinnerAt(4, 0)?.n} *</span>
-                       </div>
-                   )}
-                </div>
-            </div>
-
-            {/* HALF 2 */}
-            <div style={{display: 'flex', flex: 1, justifyContent: 'space-between', flexDirection: 'row-reverse'}}>
-               {[8, 4, 2, 1].map((numMatches, roundIdx) => (
-                  <React.Fragment key={`h2-${roundIdx}`}>
-                  <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-around', width: 110, position: 'relative'}}>
-                     <div style={{position: 'absolute', top: -20, width: '100%', textAlign: 'center', fontFamily: 'Montserrat', fontSize: 7, color: '#4A4430', letterSpacing: 2, textTransform: 'uppercase'}}>
-                        {roundIdx === 0 ? "ROUND OF 32" : roundIdx === 1 ? "ROUND OF 16" : roundIdx === 2 ? "QUARTER-FINAL" : "SEMI-FINAL"}
-                     </div>
-                     {Array.from({length: numMatches}).map((_, matchInRound) => {
-                        const globalMatchIdx = (numMatches === 8 ? 8 : numMatches === 4 ? 4 : numMatches === 2 ? 2 : 1) + matchInRound;
-                        const teamA = getTeamAt(roundIdx, globalMatchIdx, 0);
-                        const teamB = getTeamAt(roundIdx, globalMatchIdx, 1);
-                        const winner = getWinnerAt(roundIdx, globalMatchIdx);
-                        return <React.Fragment key={matchInRound}>{renderCaptureMatch(teamA, teamB, winner)}</React.Fragment>;
-                     })}
-                  </div>
-                  {/* Connectors Half 2 */}
-                  {roundIdx < 3 && (
-                      <div style={{display: 'flex', flexDirection: 'column', width: 20}}>
-                         {Array.from({length: numMatches / 2}).map((_, i) => (
-                            <div key={i} style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                                <div style={{ width: '100%', height: '50%', borderTop: '1px solid #7A6230', borderLeft: '1px solid #7A6230', borderBottom: '1px solid #7A6230' }}></div>
-                            </div>
-                         ))}
-                      </div>
-                  )}
-                  </React.Fragment>
-               ))}
-            </div>
-         </div>
-
-         {/* WATERMARK */}
-         <div style={{position: 'absolute', bottom: 30, right: 40, fontFamily: 'Montserrat', fontSize: 16, color: '#9A8860'}}>
-            Predicted by: {userName || 'My Prediction'} &nbsp;&nbsp;·&nbsp;&nbsp; Date: {predictionDate}
-         </div>
-      </div>
     </div>
   );
 }

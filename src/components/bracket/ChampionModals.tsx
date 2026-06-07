@@ -67,9 +67,9 @@ export function ChampionCard({ champion, userName, setUserName, predictionDate, 
            <div className="share-label">SHARE YOUR PREDICTION</div>
            <div className="share-buttons">
              <button onClick={onDownload}>📄 Download PDF</button>
-             <button onClick={() => window.open(`whatsapp://send?text=My FIFA World Cup 2026 Champion is ${champion.n}! Predict yours at MUNDIAL.`)}>💬 WhatsApp</button>
-             <button onClick={() => window.open(`https://twitter.com/intent/tweet?text=My FIFA World Cup 2026 Champion is ${champion.n}! Predict yours at MUNDIAL.`)}>𝕏 Twitter</button>
-             <button onClick={() => { navigator.clipboard.writeText(`My FIFA World Cup 2026 Champion is ${champion.n}! Predict yours at MUNDIAL.`); alert("Link copied!"); }}>🔗 Copy Link</button>
+             <button onClick={() => window.open(`whatsapp://send?text=My FIFA World Cup 2026 Champion is ${champion.n}! Predict yours at XI.`)}>💬 WhatsApp</button>
+             <button onClick={() => window.open(`https://twitter.com/intent/tweet?text=My FIFA World Cup 2026 Champion is ${champion.n}! Predict yours at XI.`)}>𝕏 Twitter</button>
+             <button onClick={() => { navigator.clipboard.writeText(`My FIFA World Cup 2026 Champion is ${champion.n}! Predict yours at XI.`); alert("Link copied!"); }}>🔗 Copy Link</button>
            </div>
          </div>
       </div>

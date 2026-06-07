@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Group Standings Calculator
+ * XI — Group Standings Calculator
  * Pure function: takes teams + matches (with user predictions) and returns
  * sorted standings following the 2026 FIFA World Cup tiebreaker rules:
  *   1. Points

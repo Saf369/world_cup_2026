@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Browser Supabase Client
+ * XI — Browser Supabase Client
  * Use this in Client Components ('use client').
  * Handles cookie-based auth via @supabase/ssr.
  */

@@ -2,7 +2,7 @@
 
 const COLS = [
   {
-    title: "MUNDIAL",
+    title: "XI",
     subtitle: "The Elite Platform",
     items: [
       "World Cup 2026 Predictor",
@@ -178,7 +178,7 @@ export default function Footer() {
           }}
         >
           <span className="label-xs" style={{ color: "#5A5248", letterSpacing: "1.5px" }}>
-            © 2026 MUNDIAL. All rights reserved.
+            © 2026 XI. All rights reserved.
           </span>
           <span
             className="font-serif"

@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Prediction Points Calculator
+ * XI — Prediction Points Calculator
  * Pure functions — no side effects, easily unit-testable.
  */
 

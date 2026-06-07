@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Server Supabase Client
+ * XI — Server Supabase Client
  * Use this in Server Components, Route Handlers, and Server Actions.
  * Reads/writes cookies from Next.js headers — never exposes service key to browser.
  */

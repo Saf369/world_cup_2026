@@ -1,5 +1,5 @@
 /**
- * MUNDIAL — Auth Middleware for Route Handlers
+ * XI — Auth Middleware for Route Handlers
  * Wraps a Route Handler with Supabase session verification.
  * Usage:
  *   export const GET = withAuth(async (req, ctx, user) => { ... });

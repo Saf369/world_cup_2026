@@ -26,4 +26,4 @@ export const INITIAL_ROUNDS: (Team | null)[][] = [
   Array(1).fill(null), // Final winner (1)
 ];
 
-export const LS_KEY = "mundial2026";
+export const LS_KEY = "xi2026";

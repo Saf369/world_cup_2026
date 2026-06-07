@@ -1,9 +1,26 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Hero() {
   const [loaded, setLoaded] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const router = useRouter();
+
+  const handleStartPredicting = async () => {
+    setIsCheckingAuth(true);
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    setIsCheckingAuth(false);
+    
+    if (session) {
+      router.push('/bracket');
+    } else {
+      router.push('/login');
+    }
+  };
 
   useEffect(() => {
     setLoaded(true);
@@ -183,8 +200,17 @@ export default function Hero() {
             transition: "opacity 0.8s ease 0.5s",
           }}
         >
-          <button className="btn-gold">Start Predicting</button>
-          <button className="btn-outline">View Bracket</button>
+          <button 
+            className="btn-gold" 
+            onClick={handleStartPredicting}
+            style={{ opacity: isCheckingAuth ? 0.7 : 1 }}
+            disabled={isCheckingAuth}
+          >
+            {isCheckingAuth ? "Loading..." : "Start Predicting"}
+          </button>
+          <button className="btn-outline" onClick={() => router.push('/#bracket')}>
+            View Bracket
+          </button>
         </div>
 
         {/* Scroll indicator */}

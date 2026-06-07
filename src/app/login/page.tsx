@@ -105,7 +105,7 @@ export default function LoginPage() {
           {/* ── HEADER ── */}
           <header className="lc-header">
             <div className="lc-trophy" aria-label="Trophy">🏆</div>
-            <h1 className="lc-wordmark">MUNDIAL</h1>
+            <h1 className="lc-wordmark">XI</h1>
             <p className="lc-subtitle">WORLD CUP 2026 PREDICTOR</p>
           </header>
 
