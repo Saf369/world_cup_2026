@@ -31,12 +31,9 @@ const transports: winston.transport[] = [
   new winston.transports.Console({ silent: false }),
 ];
 
-if (!isDev) {
-  transports.push(
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs/combined.log' }),
-  );
-}
+// Vercel serverless functions have a read-only filesystem (except /tmp).
+// We rely entirely on the Console transport, which Vercel captures automatically.
+// Do not attempt to write to 'logs/'.
 
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL ?? (isDev ? 'debug' : 'info'),

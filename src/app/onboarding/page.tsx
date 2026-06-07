@@ -65,10 +65,15 @@ export default function OnboardingPage() {
         return;
       }
 
-      // Any other failure (except 409 = already registered which is fine)
       if (!res.ok && res.status !== 409) {
-        const body = await res.json();
-        throw new Error(body.error ?? "Failed to save profile");
+        let errorMessage = "Failed to save profile";
+        try {
+          const body = await res.json();
+          errorMessage = body.error ?? errorMessage;
+        } catch {
+          errorMessage = `Server Error (${res.status})`;
+        }
+        throw new Error(errorMessage);
       }
 
       // DB save confirmed — now update Supabase auth metadata

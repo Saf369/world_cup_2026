@@ -19,7 +19,11 @@ export const dynamic = 'force-dynamic';
 async function get(path: string) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, { headers });
   if (!res.ok) return null;
-  return res.json();
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(req: NextRequest): Promise<Response> {

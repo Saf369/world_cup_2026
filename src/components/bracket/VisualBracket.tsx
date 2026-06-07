@@ -88,7 +88,13 @@ export default function VisualBracket() {
           body: JSON.stringify({ userName: name }),
         });
         if (res.ok) {
-          const { predictionId: newPid } = await res.json();
+          let newPid;
+          try {
+            const body = await res.json();
+            newPid = body.predictionId;
+          } catch (e) {
+            console.error('[xi] create returned non-JSON', e);
+          }
           if (newPid) {
             localStorage.setItem(PID_KEY, newPid);
             setPredictionId(newPid);

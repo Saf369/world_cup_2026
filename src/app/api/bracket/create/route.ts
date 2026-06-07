@@ -50,8 +50,14 @@ export async function POST(req: NextRequest): Promise<Response> {
       return Response.json({ error: err }, { status: 500 });
     }
 
-    const [row] = await res.json();
-    return Response.json({ predictionId: row.id });
+    let row;
+    try {
+      const parsed = await res.json();
+      row = parsed[0];
+    } catch {
+      return Response.json({ error: 'Upstream returned invalid JSON' }, { status: 502 });
+    }
+    return Response.json({ predictionId: row?.id });
   } catch (err) {
     return Response.json(
       { error: err instanceof Error ? err.message : 'Unknown error' },
