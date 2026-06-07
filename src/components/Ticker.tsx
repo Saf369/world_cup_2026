@@ -1,18 +1,32 @@
 "use client";
 
 const TICKER_ITEMS = [
-  { label: "MEXICO",    score: "— vs —", vs: "SOUTH AFRICA", status: "Jun 11", live: false, upcoming: true },
-  { label: "USA",       score: "— vs —", vs: "PARAGUAY",     status: "Jun 12", live: false, upcoming: true },
-  { label: "CANADA",   score: "— vs —", vs: "BOSNIA-HERZ.",  status: "Jun 12", live: false, upcoming: true },
-  { label: "GERMANY",  score: "— vs —", vs: "CURAÇAO",       status: "Jun 13", live: false, upcoming: true },
-  { label: "BRAZIL",   score: "— vs —", vs: "MOROCCO",       status: "Jun 13", live: false, upcoming: true },
-  { label: "FRANCE",   score: "— vs —", vs: "SENEGAL",       status: "Jun 14", live: false, upcoming: true },
-  { label: "SPAIN",    score: "— vs —", vs: "CAPE VERDE",    status: "Jun 14", live: false, upcoming: true },
-  { label: "ARGENTINA",score: "— vs —", vs: "ALGERIA",       status: "Jun 15", live: false, upcoming: true },
-  { label: "ENGLAND",  score: "— vs —", vs: "CROATIA",       status: "Jun 15", live: false, upcoming: true },
-  { label: "PORTUGAL", score: "— vs —", vs: "DR CONGO",      status: "Jun 16", live: false, upcoming: true },
-  { label: "NETHERLANDS", score: "— vs —", vs: "JAPAN",      status: "Jun 16", live: false, upcoming: true },
-  { label: "FINAL",    score: "MetLife Stadium", vs: "NJ",   status: "Jul 19", live: false, upcoming: true },
+  // ET 3pm Jun 11  → IST 12:30 AM Jun 12
+  { label: "MEXICO",      score: "— vs —", vs: "SOUTH AFRICA", status: "Jun 12, 12:30 AM", live: false, upcoming: true },
+  // ET 3pm Jun 12  → IST 12:30 AM Jun 13
+  { label: "CANADA",      score: "— vs —", vs: "BOSNIA-HERZ.", status: "Jun 13, 12:30 AM", live: false, upcoming: true },
+  // ET 9pm Jun 12  → IST 6:30 AM Jun 13
+  { label: "USA",         score: "— vs —", vs: "PARAGUAY",     status: "Jun 13, 6:30 AM",  live: false, upcoming: true },
+  // ET 6pm Jun 13  → IST 3:30 AM Jun 14
+  { label: "BRAZIL",      score: "— vs —", vs: "MOROCCO",      status: "Jun 14, 3:30 AM",  live: false, upcoming: true },
+  // ET 1pm Jun 14  → IST 10:30 PM Jun 14
+  { label: "GERMANY",     score: "— vs —", vs: "CURAÇAO",      status: "Jun 14, 10:30 PM", live: false, upcoming: true },
+  // ET 4pm Jun 14  → IST 1:30 AM Jun 15
+  { label: "NETHERLANDS", score: "— vs —", vs: "JAPAN",        status: "Jun 15, 1:30 AM",  live: false, upcoming: true },
+  // ET noon Jun 15 → IST 9:30 PM Jun 15
+  { label: "SPAIN",       score: "— vs —", vs: "CAPE VERDE",   status: "Jun 15, 9:30 PM",  live: false, upcoming: true },
+  // ET 3pm Jun 15  → IST 12:30 AM Jun 16
+  { label: "BELGIUM",     score: "— vs —", vs: "EGYPT",        status: "Jun 16, 12:30 AM", live: false, upcoming: true },
+  // ET 9pm Jun 15  → IST 6:30 AM Jun 16
+  { label: "ARGENTINA",   score: "— vs —", vs: "ALGERIA",      status: "Jun 16, 6:30 AM",  live: false, upcoming: true },
+  // ET 4pm Jun 15  → IST 1:30 AM Jun 16
+  { label: "ENGLAND",     score: "— vs —", vs: "CROATIA",      status: "Jun 16, 1:30 AM",  live: false, upcoming: true },
+  // ET 1pm Jun 16  → IST 10:30 PM Jun 16
+  { label: "PORTUGAL",    score: "— vs —", vs: "DR CONGO",     status: "Jun 16, 10:30 PM", live: false, upcoming: true },
+  // ET 3pm Jun 16  → IST 12:30 AM Jun 17
+  { label: "FRANCE",      score: "— vs —", vs: "SENEGAL",      status: "Jun 17, 12:30 AM", live: false, upcoming: true },
+  // ET 3pm Jul 19  → IST 12:30 AM Jul 20
+  { label: "FINAL",       score: "MetLife Stadium", vs: "NJ",  status: "Jul 20, 12:30 AM", live: false, upcoming: true },
 ];
 
 // Duplicate for seamless loop
