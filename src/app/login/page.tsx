@@ -149,21 +149,7 @@ export default function LoginPage() {
               )}
             </button>
 
-            {/* Anonymous option */}
-            <div className="lc-anon">
-              <div className="lc-anon-rule" aria-hidden="true" />
-              <span className="lc-anon-text">or</span>
-              <div className="lc-anon-rule" aria-hidden="true" />
-            </div>
 
-            <Link href="/" className="lc-skip-btn">
-              Continue without signing in
-            </Link>
-
-            <p className="lc-anon-note">
-              Anonymous predictions are saved locally in your browser.
-              Sign in to back them up and appear on the leaderboard.
-            </p>
           </div>
 
           {/* ── FOOTER ── */}

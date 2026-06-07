@@ -773,23 +773,35 @@ export default function VisualBracket() {
             Group Stage {groupsAllConfirmed ? '✓' : `(${confirmedGroupCount}/12)`}
           </div>
           <div 
-            className={`round-pill ${activeTab === 'best8' ? "active" : ""} ${!groupsAllConfirmed ? "disabled" : ""}`}
-            onClick={() => { if (groupsAllConfirmed) setActiveTab('best8'); }}
-            style={{ cursor: groupsAllConfirmed ? 'pointer' : 'not-allowed', opacity: groupsAllConfirmed ? 1 : 0.4 }}
+            className={`round-pill ${activeTab === 'best8' ? "active" : ""} ${!confirmedChampion && !groupsAllConfirmed ? "disabled" : ""}`}
+            onClick={() => { if (confirmedChampion || groupsAllConfirmed) setActiveTab('best8'); }}
+            style={{ cursor: (confirmedChampion || groupsAllConfirmed) ? 'pointer' : 'not-allowed', opacity: (confirmedChampion || groupsAllConfirmed) ? 1 : 0.4 }}
           >
             Best 8 {thirdRankingsConfirmed ? '✓' : (groupsAllConfirmed ? '(Pending)' : '(Locked)')}
           </div>
           <div 
-            className={`round-pill ${activeTab === 'bracket' && counts.r32 === 16 ? "active" : ""}`}
-            onClick={() => { if (thirdRankingsConfirmed) setActiveTab('bracket'); }}
-            style={{ cursor: thirdRankingsConfirmed ? 'pointer' : 'not-allowed', opacity: thirdRankingsConfirmed ? 1 : 0.4 }}
+            className={`round-pill ${activeTab === 'bracket' && counts.r32 === 16 ? "active" : ""} ${!confirmedChampion && !thirdRankingsConfirmed ? "disabled" : ""}`}
+            onClick={() => { if (confirmedChampion || thirdRankingsConfirmed) setActiveTab('bracket'); }}
+            style={{ cursor: (confirmedChampion || thirdRankingsConfirmed) ? 'pointer' : 'not-allowed', opacity: (confirmedChampion || thirdRankingsConfirmed) ? 1 : 0.4 }}
           >
             Round of 32 {thirdRankingsConfirmed ? '' : '(Locked)'}
           </div>
-          <div className={`round-pill ${counts.r16 === 8 ? "active" : ""}`}>R16</div>
-          <div className={`round-pill ${counts.qf === 4 ? "active" : ""}`}>QF</div>
-          <div className={`round-pill ${counts.sf === 2 ? "active" : ""}`}>SF</div>
-          <div className={`round-pill ${counts.final === 1 ? "active" : ""}`}>Final</div>
+          <div className={`round-pill ${counts.r16 === 8 ? "active" : ""} ${!confirmedChampion && counts.r16 < 8 ? "disabled" : ""}`}
+            onClick={() => { if (confirmedChampion || counts.r16 === 8) setActiveTab('bracket'); }}
+            style={{ cursor: (confirmedChampion || counts.r16 === 8) ? 'pointer' : 'not-allowed', opacity: (confirmedChampion || counts.r16 === 8) ? 1 : 0.4 }}
+          >R16</div>
+          <div className={`round-pill ${counts.qf === 4 ? "active" : ""} ${!confirmedChampion && counts.qf < 4 ? "disabled" : ""}`}
+            onClick={() => { if (confirmedChampion || counts.qf === 4) setActiveTab('bracket'); }}
+            style={{ cursor: (confirmedChampion || counts.qf === 4) ? 'pointer' : 'not-allowed', opacity: (confirmedChampion || counts.qf === 4) ? 1 : 0.4 }}
+          >QF</div>
+          <div className={`round-pill ${counts.sf === 2 ? "active" : ""} ${!confirmedChampion && counts.sf < 2 ? "disabled" : ""}`}
+            onClick={() => { if (confirmedChampion || counts.sf === 2) setActiveTab('bracket'); }}
+            style={{ cursor: (confirmedChampion || counts.sf === 2) ? 'pointer' : 'not-allowed', opacity: (confirmedChampion || counts.sf === 2) ? 1 : 0.4 }}
+          >SF</div>
+          <div className={`round-pill ${counts.final === 1 ? "active" : ""} ${!confirmedChampion && counts.final < 1 ? "disabled" : ""}`}
+            onClick={() => { if (confirmedChampion || counts.final === 1) setActiveTab('bracket'); }}
+            style={{ cursor: (confirmedChampion || counts.final === 1) ? 'pointer' : 'not-allowed', opacity: (confirmedChampion || counts.final === 1) ? 1 : 0.4 }}
+          >Final</div>
         </div>
 
         <div className="nav-right" style={{display: 'flex', gap: '16px', alignItems: 'center'}}>
@@ -824,15 +836,17 @@ export default function VisualBracket() {
 
       {activeTab === 'groups' && (
         <>
-          <div style={{ textAlign: 'center', margin: '20px 0' }}>
-            <button 
-              className="gc-btn" 
-              style={{ width: 'auto', padding: '12px 32px', display: 'inline-flex', fontSize: '12px', gap: '8px' }}
-              onClick={confirmAllGroups}
-            >
-              ⚡ AUTO-FILL & CONFIRM ALL GROUPS
-            </button>
-          </div>
+          {!confirmedChampion && (
+            <div style={{ textAlign: 'center', margin: '20px 0' }}>
+              <button 
+                className="gc-btn" 
+                style={{ width: 'auto', padding: '12px 32px', display: 'inline-flex', fontSize: '12px', gap: '8px' }}
+                onClick={confirmAllGroups}
+              >
+                ⚡ AUTO-FILL & CONFIRM ALL GROUPS
+              </button>
+            </div>
+          )}
           <div className="gs-grid">
             {GROUPS_DATA.map(group => {
             const sel = groupSelections[group.id];
@@ -889,15 +903,17 @@ export default function VisualBracket() {
                     );
                   })}
                 </div>
-                <div className="gc-btn-wrap">
-                  <button 
-                    className="gc-btn" 
-                    disabled={sel.selected.length !== 3 || sel.confirmed}
-                    onClick={() => confirmGroup(group.id)}
-                  >
-                    {sel.confirmed ? `Group ${group.id} Confirmed` : `Confirm Group ${group.id}`}
-                  </button>
-                </div>
+                {!confirmedChampion && (
+                  <div className="gc-btn-wrap">
+                    <button 
+                      className="gc-btn" 
+                      disabled={sel.selected.length !== 3 || sel.confirmed}
+                      onClick={() => confirmGroup(group.id)}
+                    >
+                      {sel.confirmed ? `Group ${group.id} Confirmed` : `Confirm Group ${group.id}`}
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -959,51 +975,53 @@ export default function VisualBracket() {
               );
             })}
           </div>
-          <div style={{display: 'flex', justifyContent: 'center'}}>
-            {!thirdRankingsConfirmed ? (
-              <button 
-                className="gc-btn" 
-                style={{marginTop: 20, maxWidth: 300, padding: 12}} 
-                onClick={async () => {
-                  setThirdRankingsConfirmed(true);
-                  showToast("Best 8 Confirmed! R32 Bracket Filled!");
-                  setActiveTab('bracket');
-                  // ─── TRIGGER 3: Save Best 8 to DB ─────────────────────
-                  if (predictionId) {
-                    setIsSaving(true);
-                    try {
-                      const ranking = thirdRankings.map((tName, idx) => {
-                        let flag = '', gId = '';
-                        Object.entries(groupSelections).forEach(([k, v]) => {
-                          if (v.selected[2] === tName) gId = k;
+          {!confirmedChampion && (
+            <div style={{display: 'flex', justifyContent: 'center'}}>
+              {!thirdRankingsConfirmed ? (
+                <button 
+                  className="gc-btn" 
+                  style={{marginTop: 20, maxWidth: 300, padding: 12}} 
+                  onClick={async () => {
+                    setThirdRankingsConfirmed(true);
+                    showToast("Best 8 Confirmed! R32 Bracket Filled!");
+                    setActiveTab('bracket');
+                    // ─── TRIGGER 3: Save Best 8 to DB ─────────────────────
+                    if (predictionId) {
+                      setIsSaving(true);
+                      try {
+                        const ranking = thirdRankings.map((tName, idx) => {
+                          let flag = '', gId = '';
+                          Object.entries(groupSelections).forEach(([k, v]) => {
+                            if (v.selected[2] === tName) gId = k;
+                          });
+                          const grp = GROUPS_DATA.find(g => g.id === gId);
+                          if (grp) { const tm = grp.teams.find(x => x.n === tName); if (tm) flag = tm.f; }
+                          return { rank: idx + 1, team: tName, flag, groupLetter: gId, advances: idx < 8 };
                         });
-                        const grp = GROUPS_DATA.find(g => g.id === gId);
-                        if (grp) { const tm = grp.teams.find(x => x.n === tName); if (tm) flag = tm.f; }
-                        return { rank: idx + 1, team: tName, flag, groupLetter: gId, advances: idx < 8 };
-                      });
-                      const res = await fetch('/api/bracket/save-best8', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ predictionId, ranking }),
-                      });
-                      if (!res.ok) showToast('Save failed — picks stored locally');
-                    } catch { showToast('Save failed — picks stored locally'); }
-                    finally { setIsSaving(false); }
-                  }
-                }}
-              >
-                Confirm Best 8
-              </button>
-            ) : (
-              <button 
-                className="gc-btn" 
-                style={{marginTop: 20, maxWidth: 300, background: 'var(--black-border)', color: 'var(--text-muted)'}} 
-                onClick={() => setThirdRankingsConfirmed(false)}
-              >
-                Edit Rankings
-              </button>
-            )}
-          </div>
+                        const res = await fetch('/api/bracket/save-best8', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ predictionId, ranking }),
+                        });
+                        if (!res.ok) showToast('Save failed — picks stored locally');
+                      } catch { showToast('Save failed — picks stored locally'); }
+                      finally { setIsSaving(false); }
+                    }
+                  }}
+                >
+                  Confirm Best 8
+                </button>
+              ) : (
+                <button 
+                  className="gc-btn" 
+                  style={{marginTop: 20, maxWidth: 300, background: 'var(--black-border)', color: 'var(--text-muted)'}} 
+                  onClick={() => setThirdRankingsConfirmed(false)}
+                >
+                  Edit Rankings
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -1040,12 +1058,14 @@ export default function VisualBracket() {
         </>
       )}
 
-      {/* 4. RESET STRIP */}
-      <div className="reset-strip">
-        <button className="reset-button" onClick={resetBracket}>
-          ↺ Reset All Predictions
-        </button>
-      </div>
+      {/* 4. RESET STRIP — hidden once champion is confirmed */}
+      {!confirmedChampion && (
+        <div className="reset-strip">
+          <button className="reset-button" onClick={resetBracket}>
+            ↺ Reset All Predictions
+          </button>
+        </div>
+      )}
 
       {/* TOAST */}
       <div className={`toast-notification ${toast.visible ? "visible" : ""}`}>
