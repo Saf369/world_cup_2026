@@ -1,4 +1,5 @@
 import React from 'react';
+import { useForm } from 'react-hook-form';
 import { Team } from './types';
 
 interface ChampionConfirmDialogProps {
@@ -33,6 +34,10 @@ interface ChampionCardProps {
 }
 
 export function ChampionCard({ champion, userName, setUserName, predictionDate, onClose, onDownload }: ChampionCardProps) {
+  const { register } = useForm({
+    defaultValues: { userName }
+  });
+
   return (
     <div className="champion-overlay">
       <div className="confetti-container">
@@ -58,7 +63,7 @@ export function ChampionCard({ champion, userName, setUserName, predictionDate, 
          
          <div className="champ-meta">
            <div style={{marginBottom: 10}}>
-             Predicted by: <input className="name-input" style={{textAlign: 'center', display: 'inline', width: '120px', background: 'rgba(0,0,0,0.5)', padding: '2px 8px'}} value={userName} onChange={e => setUserName(e.target.value)} placeholder="My Prediction" />
+             Predicted by: <input className="name-input" style={{textAlign: 'center', display: 'inline', width: '120px', background: 'rgba(0,0,0,0.5)', padding: '2px 8px'}} placeholder="My Prediction" {...register("userName", { onChange: (e) => setUserName(e.target.value) })} />
            </div>
            <div>Date: {predictionDate}</div>
          </div>

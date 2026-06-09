@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import "./onboarding.css";
 
 const supabase = createBrowserClient(
@@ -10,16 +13,36 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
-export default function OnboardingPage() {
-  const router  = useRouter();
-  const [loading,        setLoading]        = useState(true);
-  const [saving,          setSaving]          = useState(false);
-  const [error,           setError]           = useState<string | null>(null);
-  const [sessionExpired,  setSessionExpired]  = useState(false);
-  const [step,            setStep]            = useState<"form" | "done">("form");
+const formSchema = z.object({
+  name: z.string().min(1, "Full name is required."),
+  phone: z.string().refine((val) => {
+    const digits = val.replace(/\D/g, "");
+    return digits.length === 10;
+  }, "Enter a valid 10-digit mobile number."),
+});
 
-  const [name,  setName]  = useState("");
-  const [phone, setPhone] = useState("");
+type FormValues = z.infer<typeof formSchema>;
+
+export default function OnboardingPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [step, setStep] = useState<"form" | "done">("form");
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+    },
+  });
 
   // Guard: must be authenticated
   useEffect(() => {
@@ -30,20 +53,15 @@ export default function OnboardingPage() {
       }
       // Pre-fill from Google profile
       const meta = data.user.user_metadata;
-      setName(meta?.full_name ?? "");
+      if (meta?.full_name) {
+        setValue("name", meta.full_name);
+      }
       setLoading(false);
     });
-  }, [router]);
+  }, [router, setValue]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: FormValues) => {
     setError(null);
-
-    if (!name.trim()) { setError("Full name is required."); return; }
-    const digits = phone.replace(/\D/g, "");
-    if (!phone.trim() || digits.length === 0) { setError("Phone number is required."); return; }
-    if (digits.length !== 10) { setError("Enter a valid 10-digit mobile number."); return; }
-
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -51,11 +69,11 @@ export default function OnboardingPage() {
 
       // Save to DB first — this is the gate
       const res = await fetch("/api/auth/register", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name:  name.trim(),
-          phone: `+91${phone.replace(/\D/g, "")}`,
+          name: values.name.trim(),
+          phone: `+91${values.phone.replace(/\D/g, "")}`,
         }),
       });
 
@@ -79,8 +97,8 @@ export default function OnboardingPage() {
       // DB save confirmed — now update Supabase auth metadata
       await supabase.auth.updateUser({
         data: {
-          full_name: name.trim(),
-          phone:     `+91${phone.replace(/\D/g, "")}`,
+          full_name: values.name.trim(),
+          phone: `+91${values.phone.replace(/\D/g, "")}`,
         },
       });
 
@@ -155,7 +173,7 @@ export default function OnboardingPage() {
               </p>
             </header>
 
-            <form className="ob-form" onSubmit={handleSubmit} noValidate>
+            <form className="ob-form" onSubmit={handleSubmit(onSubmit)} noValidate>
               {/* Full name */}
               <div className="ob-field">
                 <label className="ob-label" htmlFor="ob-name">Full Name *</label>
@@ -164,13 +182,11 @@ export default function OnboardingPage() {
                   className="ob-input"
                   type="text"
                   placeholder="e.g. Cristiano Ronaldo"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
                   autoComplete="name"
-                  required
+                  {...register("name")}
                 />
+                {errors.name && <div className="ob-error-text" style={{color: '#ff4d4f', fontSize: '0.85rem', marginTop: '4px'}}>{errors.name.message}</div>}
               </div>
-
 
               {/* Phone */}
               <div className="ob-field">
@@ -183,20 +199,19 @@ export default function OnboardingPage() {
                     type="tel"
                     inputMode="numeric"
                     placeholder="98765 43210"
-                    value={phone}
                     maxLength={10}
-                    onChange={e => {
-                      // Allow digits only, cap at 10
-                      const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
-                      setPhone(digits);
-                    }}
                     autoComplete="tel-national"
-                    required
+                    {...register("phone", {
+                      onChange: (e) => {
+                        const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        e.target.value = digits;
+                      }
+                    })}
                   />
                 </div>
+                {errors.phone && <div className="ob-error-text" style={{color: '#ff4d4f', fontSize: '0.85rem', marginTop: '4px'}}>{errors.phone.message}</div>}
                 <p className="ob-hint">10-digit Indian mobile number · Used only for prize notifications · Never shared.</p>
               </div>
-
 
               {error && (
                 <div className="ob-error" role="alert">{error}</div>
@@ -214,8 +229,6 @@ export default function OnboardingPage() {
                   "JOIN THE COMPETITION →"
                 )}
               </button>
-
-
             </form>
           </>
         )}
