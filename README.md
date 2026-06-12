@@ -46,19 +46,7 @@ For the best experience:
 The FIFA World Cup 2026 Predictor is a fun platform designed for football fans who want to test their prediction skills and enjoy the tournament with friends.
 
 Whether you're a casual fan or a football expert, challenge yourself and see how accurately you can predict the world's biggest sporting event.
-
----
-
-## 📸 Screenshots
-
-Add screenshots of your application here.
-
-```md
-![Home Page](screenshots/home.png)
-![Predictions](screenshots/predictions.png)
-```
-
----
+___
 
 ## 🤝 Contributing
 
