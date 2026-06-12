@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# 🏆 FIFA World Cup 2026 Predictor
 
-First, run the development server:
+Predict the FIFA World Cup 2026, compete with friends, and test your football knowledge throughout the tournament! ⚽🌍
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🌐 Live Website
+
+**Visit:** https://www.saf.net.in
+
+> For the best experience on mobile devices, enable **Desktop Mode** in your browser.
+
+---
+
+## 🚀 Features
+
+- ⚽ Predict match results throughout the tournament
+- 🌍 Follow the FIFA World Cup 2026 from the opening match to the final
+- 👥 Compete with friends and compare predictions
+- 📊 Track your prediction performance during the tournament
+- 🎯 Simple and intuitive prediction interface
+
+---
+
+## 🎮 How It Works
+
+1. Visit the website and sign in.
+2. Submit your predictions before matches begin.
+3. Follow the tournament as matches are played.
+4. Compare your predictions with friends.
+5. See who makes the most accurate predictions by the end of the World Cup.
+
+---
+
+## 📱 Mobile Users
+
+For the best experience:
+
+1. Open the website in your mobile browser.
+2. Enable **Desktop Site/Desktop Mode**.
+3. Refresh the page.
+
+---
+
+## 🌍 About
+
+The FIFA World Cup 2026 Predictor is a fun platform designed for football fans who want to test their prediction skills and enjoy the tournament with friends.
+
+Whether you're a casual fan or a football expert, challenge yourself and see how accurately you can predict the world's biggest sporting event.
+
+---
+
+## 📸 Screenshots
+
+Add screenshots of your application here.
+
+```md
+![Home Page](screenshots/home.png)
+![Predictions](screenshots/predictions.png)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🤝 Contributing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Contributions, suggestions, and feedback are welcome.
 
-## Learn More
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Open a Pull Request
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📄 License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This project is licensed under the MIT License.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### ⚽ Ready to Predict?
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Visit **https://www.saf.net.in** and start making your FIFA World Cup 2026 predictions today!
+
+Good luck and enjoy the tournament! 🏆🔥
